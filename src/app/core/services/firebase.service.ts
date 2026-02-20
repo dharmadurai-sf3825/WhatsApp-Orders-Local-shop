@@ -15,8 +15,14 @@ export class FirebaseService {
   // Shop Methods
   getShopById(shopId: string): Observable<Shop | null> {
     // TODO: Implement Firestore query
-    console.log('Firebase: Getting shop', shopId);
+    console.log('Firebase: Getting shop by ID', shopId);
     return of(this.getMockShop());
+  }
+
+  getShopBySlug(slug: string): Observable<Shop | null> {
+    // TODO: Implement Firestore query where slug == slug
+    console.log('Firebase: Getting shop by slug', slug);
+    return of(this.getMockShopBySlug(slug));
   }
 
   updateShop(shopId: string, shop: Partial<Shop>): Observable<void> {
@@ -86,17 +92,90 @@ export class FirebaseService {
   private getMockShop(): Shop {
     return {
       id: 'shop-1',
+      slug: 'demo-shop',
       name: 'Sri Ganesh Bakery',
       phoneE164: '918220762702',
       address: 'Main Street, Kurinjipadi, Tamil Nadu - 607302',
       gstNo: '33AAAAA0000A1Z5',
       upiId: 'sriganesh@paytm',
+      razorpayKeyId: 'rzp_test_demo',
       theme: {
         primaryColor: '#FF6B6B',
         logoUrl: ''
       },
       isActive: true
     };
+  }
+
+  private getMockShopBySlug(slug: string): Shop | null {
+    // Mock multiple shops for demonstration
+    const shops: { [key: string]: Shop } = {
+      'demo-shop': {
+        id: 'shop-demo',
+        slug: 'demo-shop',
+        name: 'Demo Shop',
+        phoneE164: '918220762702',
+        address: 'Main Street, Kurinjipadi, Tamil Nadu - 607302',
+        gstNo: '33AAAAA0000A1Z5',
+        upiId: 'demo@paytm',
+        razorpayKeyId: 'rzp_test_demo',
+        theme: {
+          primaryColor: '#FF6B6B',
+          logoUrl: ''
+        },
+        isActive: true
+      },
+      'ganesh-bakery': {
+        id: 'shop-ganesh',
+        slug: 'ganesh-bakery',
+        name: 'Sri Ganesh Bakery',
+        phoneE164: '918220762702',
+        address: 'Main Street, Kurinjipadi, Tamil Nadu - 607302',
+        gstNo: '33AAAAA0000A1Z5',
+        upiId: 'ganeshbakery@paytm',
+        razorpayKeyId: 'rzp_test_ganesh',
+        theme: {
+          primaryColor: '#FF6B6B',
+          secondaryColor: '#4ECDC4',
+          logoUrl: ''
+        },
+        isActive: true
+      },
+      'anbu-grocery': {
+        id: 'shop-anbu',
+        slug: 'anbu-grocery',
+        name: 'Anbu Grocery Store',
+        phoneE164: '919876543210',
+        address: 'Gandhi Road, Kurinjipadi, Tamil Nadu - 607302',
+        gstNo: '33BBBBB1111B2Z6',
+        upiId: 'anbugrocery@paytm',
+        razorpayKeyId: 'rzp_test_anbu',
+        theme: {
+          primaryColor: '#4CAF50',
+          secondaryColor: '#8BC34A',
+          logoUrl: ''
+        },
+        isActive: true
+      },
+      'kumar-restaurant': {
+        id: 'shop-kumar',
+        slug: 'kumar-restaurant',
+        name: 'Kumar Restaurant',
+        phoneE164: '919887654321',
+        address: 'Bazaar Street, Kurinjipadi, Tamil Nadu - 607302',
+        gstNo: '33CCCCC2222C3Z7',
+        upiId: 'kumarrestaurant@paytm',
+        razorpayKeyId: 'rzp_test_kumar',
+        theme: {
+          primaryColor: '#FF9800',
+          secondaryColor: '#FFC107',
+          logoUrl: ''
+        },
+        isActive: true
+      }
+    };
+
+    return shops[slug] || null;
   }
 
   private getMockProducts(): Product[] {

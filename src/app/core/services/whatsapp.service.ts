@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { CartItem } from '../models/product.model';
 import { CustomerInfo } from '../models/order.model';
+import { Shop } from '../models/shop.model';
 import { environment } from '../../../environments/environment';
 
 @Injectable({
@@ -11,33 +12,34 @@ export class WhatsAppService {
   /**
    * Generate WhatsApp Click-to-Chat URL with pre-filled order message
    * Uses wa.me API with E.164 phone format (no +, spaces, or dashes)
-   * @param phoneNumber E.164 format: 918220762702
+   * @param shop Shop information (contains WhatsApp number)
    * @param cartItems Array of cart items
    * @param customerInfo Customer details
    * @param language 'en' or 'ta'
    */
   generateOrderLink(
-    phoneNumber: string,
+    shop: Shop,
     cartItems: CartItem[],
     customerInfo: CustomerInfo,
     language: 'en' | 'ta' = 'ta'
   ): string {
-    const message = this.buildOrderMessage(cartItems, customerInfo, language);
+    const message = this.buildOrderMessage(shop, cartItems, customerInfo, language);
     const encodedMessage = encodeURIComponent(message);
-    return `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
+    return `https://wa.me/${shop.phoneE164}?text=${encodedMessage}`;
   }
 
   /**
    * Build formatted order message for WhatsApp
    */
   private buildOrderMessage(
+    shop: Shop,
     cartItems: CartItem[],
     customerInfo: CustomerInfo,
     language: 'en' | 'ta'
   ): string {
     const greeting = language === 'ta' 
-      ? 'வணக்கம்! நான் ஆர்டர் செய்ய விரும்புகிறேன்:'
-      : 'Hello! I want to place an order:';
+      ? `வணக்கம்! நான் ${shop.name}-இல் ஆர்டர் செய்ய விரும்புகிறேன்:`
+      : `Hello! I want to place an order from ${shop.name}:`;
     
     const itemsHeader = language === 'ta' ? '\n\n*பொருட்கள்:*' : '\n\n*Items:*';
     

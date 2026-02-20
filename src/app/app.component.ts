@@ -6,6 +6,8 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import { LanguageService } from './core/services/language.service';
+import { ShopService } from './core/services/shop.service';
+import { Shop } from './core/models/shop.model';
 
 @Component({
   selector: 'app-root',
@@ -20,7 +22,7 @@ import { LanguageService } from './core/services/language.service';
   ],
   template: `
     <mat-toolbar color="primary" class="app-toolbar">
-      <span>{{ currentLang === 'ta' ? 'வாட்ஸ்அப் ஆர்டர்' : 'WhatsApp Order' }}</span>
+      <span>{{ shopName || (currentLang === 'ta' ? 'வாட்ஸ்அப் ஆர்டர்' : 'WhatsApp Order') }}</span>
       <span class="spacer"></span>
       <button mat-icon-button [matMenuTriggerFor]="langMenu">
         <mat-icon>language</mat-icon>
@@ -66,13 +68,28 @@ import { LanguageService } from './core/services/language.service';
 })
 export class AppComponent implements OnInit {
   currentLang = 'ta';
+  shopName: string | null = null;
+  currentShop: Shop | null = null;
 
-  constructor(private languageService: LanguageService) {}
+  constructor(
+    private languageService: LanguageService,
+    private shopService: ShopService
+  ) {}
 
   ngOnInit() {
+    // Initialize language
     this.currentLang = this.languageService.getCurrentLanguage();
     this.languageService.language$.subscribe(lang => {
       this.currentLang = lang;
+    });
+
+    // Initialize shop based on URL
+    this.shopService.initializeShop();
+    
+    // Subscribe to current shop changes
+    this.shopService.currentShop$.subscribe(shop => {
+      this.currentShop = shop;
+      this.shopName = shop?.name || null;
     });
   }
 

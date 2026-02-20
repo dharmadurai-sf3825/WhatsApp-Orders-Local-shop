@@ -12,6 +12,7 @@ import { CartService } from '../../../core/services/cart.service';
 import { WhatsAppService } from '../../../core/services/whatsapp.service';
 import { LanguageService } from '../../../core/services/language.service';
 import { FirebaseService } from '../../../core/services/firebase.service';
+import { ShopService } from '../../../core/services/shop.service';
 import { CartItem } from '../../../core/models/product.model';
 import { CustomerInfo } from '../../../core/models/order.model';
 import { Shop } from '../../../core/models/shop.model';
@@ -371,6 +372,7 @@ export class CartComponent implements OnInit {
     private whatsappService: WhatsAppService,
     private languageService: LanguageService,
     private firebaseService: FirebaseService,
+    private shopService: ShopService,
     private router: Router
   ) {}
 
@@ -384,7 +386,8 @@ export class CartComponent implements OnInit {
       this.cartItems = cart;
     });
 
-    this.firebaseService.getShopById('shop-1').subscribe(shop => {
+    // Get current shop from ShopService
+    this.shopService.currentShop$.subscribe(shop => {
       this.shop = shop;
     });
 
@@ -445,9 +448,9 @@ export class CartComponent implements OnInit {
     // Save customer info for next time
     this.saveCustomerInfo();
 
-    // Generate WhatsApp link
+    // Generate WhatsApp link with shop object
     const whatsappUrl = this.whatsappService.generateOrderLink(
-      this.shop.phoneE164,
+      this.shop,
       this.cartItems,
       this.customerInfo,
       this.language as 'en' | 'ta'

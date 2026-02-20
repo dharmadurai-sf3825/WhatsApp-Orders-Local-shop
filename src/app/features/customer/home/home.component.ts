@@ -8,6 +8,7 @@ import { MatBadgeModule } from '@angular/material/badge';
 import { FirebaseService } from '../../../core/services/firebase.service';
 import { CartService } from '../../../core/services/cart.service';
 import { LanguageService } from '../../../core/services/language.service';
+import { ShopService } from '../../../core/services/shop.service';
 import { Product } from '../../../core/models/product.model';
 import { Shop } from '../../../core/models/shop.model';
 
@@ -265,6 +266,7 @@ export class HomeComponent implements OnInit {
     private firebaseService: FirebaseService,
     private cartService: CartService,
     private languageService: LanguageService,
+    private shopService: ShopService,
     private router: Router
   ) {}
 
@@ -274,22 +276,23 @@ export class HomeComponent implements OnInit {
       this.language = lang;
     });
 
-    this.loadShopData();
-    this.loadProducts();
+    // Get current shop from ShopService
+    this.shopService.currentShop$.subscribe(shop => {
+      this.shop = shop;
+      if (shop) {
+        this.loadProducts();
+      }
+    });
     
     this.cartService.cart$.subscribe(cart => {
       this.cartCount = cart.reduce((count, item) => count + item.quantity, 0);
     });
   }
 
-  loadShopData() {
-    this.firebaseService.getShopById('shop-1').subscribe(shop => {
-      this.shop = shop;
-    });
-  }
-
   loadProducts() {
-    this.firebaseService.getProductsByShopId('shop-1').subscribe(products => {
+    if (!this.shop) return;
+
+    this.firebaseService.getProductsByShopId(this.shop.id).subscribe(products => {
       this.featuredProducts = products;
       
       // Extract unique categories

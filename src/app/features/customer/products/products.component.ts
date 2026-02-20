@@ -9,7 +9,9 @@ import { MatBadgeModule } from '@angular/material/badge';
 import { FirebaseService } from '../../../core/services/firebase.service';
 import { CartService } from '../../../core/services/cart.service';
 import { LanguageService } from '../../../core/services/language.service';
+import { ShopService } from '../../../core/services/shop.service';
 import { Product } from '../../../core/models/product.model';
+import { Shop } from '../../../core/models/shop.model';
 
 @Component({
   selector: 'app-products',
@@ -213,11 +215,13 @@ export class ProductsComponent implements OnInit {
   selectedCategory: string | null = null;
   cartCount = 0;
   language = 'ta';
+  currentShop: Shop | null = null;
 
   constructor(
     private firebaseService: FirebaseService,
     private cartService: CartService,
     private languageService: LanguageService,
+    private shopService: ShopService,
     private router: Router,
     private route: ActivatedRoute
   ) {}
@@ -228,7 +232,13 @@ export class ProductsComponent implements OnInit {
       this.language = lang;
     });
 
-    this.loadProducts();
+    // Get current shop and load its products
+    this.shopService.currentShop$.subscribe(shop => {
+      this.currentShop = shop;
+      if (shop) {
+        this.loadProducts();
+      }
+    });
     
     this.cartService.cart$.subscribe(cart => {
       this.cartCount = cart.reduce((count, item) => count + item.quantity, 0);
@@ -244,7 +254,9 @@ export class ProductsComponent implements OnInit {
   }
 
   loadProducts() {
-    this.firebaseService.getProductsByShopId('shop-1').subscribe(products => {
+    if (!this.currentShop) return;
+
+    this.firebaseService.getProductsByShopId(this.currentShop.id).subscribe(products => {
       this.products = products;
       this.filteredProducts = products;
       
