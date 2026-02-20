@@ -11,7 +11,7 @@ export class WhatsAppService {
   /**
    * Generate WhatsApp Click-to-Chat URL with pre-filled order message
    * Uses wa.me API with E.164 phone format (no +, spaces, or dashes)
-   * @param phoneNumber E.164 format: 919876543210
+   * @param phoneNumber E.164 format: 918220762702
    * @param cartItems Array of cart items
    * @param customerInfo Customer details
    * @param language 'en' or 'ta'
@@ -101,7 +101,7 @@ export class WhatsAppService {
    * Validate E.164 phone number format
    */
   validatePhoneNumber(phone: string): boolean {
-    // E.164 format: Country code + number (e.g., 919876543210)
+    // E.164 format: Country code + number (e.g., 918220762702)
     const e164Regex = /^\d{10,15}$/;
     return e164Regex.test(phone);
   }

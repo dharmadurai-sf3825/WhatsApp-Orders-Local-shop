@@ -53,7 +53,7 @@ razorpay: {
 Update your business WhatsApp number:
 ```typescript
 whatsapp: {
-  businessNumber: '919876543210', // Your actual number
+  businessNumber: '918220762702', // Your actual number
   defaultMessage: 'Hello, I want to place an order'
 }
 ```

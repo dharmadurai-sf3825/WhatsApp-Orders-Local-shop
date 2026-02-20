@@ -71,7 +71,7 @@ export const environment = {
     keySecret: 'YOUR_RAZORPAY_KEY_SECRET'
   },
   whatsapp: {
-    businessNumber: '919876543210',
+    businessNumber: '918220762702',
     defaultMessage: 'Hello, I want to place an order'
   }
 };

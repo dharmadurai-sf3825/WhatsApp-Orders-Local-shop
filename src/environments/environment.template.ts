@@ -39,8 +39,8 @@ export const environment = {
   
   whatsapp: {
     // Your WhatsApp Business number in E.164 format (without + sign)
-    // Example: 919876543210 for +91 9876543210
-    businessNumber: '919876543210',
+    // Example: 918220762702 for +91 9876543210
+    businessNumber: '918220762702',
     defaultMessage: 'Hello, I want to place an order'
   }
 };

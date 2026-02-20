@@ -1,7 +1,7 @@
 export interface Shop {
   id?: string;
   name: string;
-  phoneE164: string; // E.164 format: 919876543210
+  phoneE164: string; // E.164 format: 918220762702
   address: string;
   gstNo?: string;
   upiId?: string;

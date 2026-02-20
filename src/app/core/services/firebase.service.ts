@@ -87,7 +87,7 @@ export class FirebaseService {
     return {
       id: 'shop-1',
       name: 'Sri Ganesh Bakery',
-      phoneE164: '919876543210',
+      phoneE164: '918220762702',
       address: 'Main Street, Kurinjipadi, Tamil Nadu - 607302',
       gstNo: '33AAAAA0000A1Z5',
       upiId: 'sriganesh@paytm',
