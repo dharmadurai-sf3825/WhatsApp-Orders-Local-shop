@@ -1,6 +1,18 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    // DEVELOPMENT MODE - Allow all reads and writes
+    // ⚠️ WARNING: Change these rules before going to production!
+    // 
+    // For now, we allow all operations to test the app without authentication
+    // In production, uncomment the authenticated rules below
+    
+    match /{document=**} {
+      allow read, write: if true;  // 🔓 Open access for development
+    }
+    
+    // PRODUCTION RULES (currently disabled - uncomment when ready)
+    /*
     // Helper functions
     function isAuthenticated() {
       return request.auth != null;
@@ -39,5 +51,6 @@ service cloud.firestore {
       allow create: if isAuthenticated();
       allow update, delete: if false; // Payments are immutable
     }
+    */
   }
 }

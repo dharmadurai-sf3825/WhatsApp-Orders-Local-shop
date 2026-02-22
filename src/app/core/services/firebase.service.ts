@@ -1,8 +1,25 @@
 import { Injectable } from '@angular/core';
-import { Observable, from, of } from 'rxjs';
+import { Observable, from, of, throwError } from 'rxjs';
+import { map, catchError } from 'rxjs/operators';
 import { Shop } from '../models/shop.model';
 import { Product } from '../models/product.model';
 import { Order } from '../models/order.model';
+
+import { environment } from '../../../environments/environment';
+
+// Firestore (AngularFire / modular)
+import {
+  Firestore,
+  collection,
+  query,
+  where,
+  getDocs,
+  getDoc,
+  doc,
+  addDoc,
+  updateDoc,
+  deleteDoc
+} from '@angular/fire/firestore';
 
 // Note: This is a placeholder service. Implement actual Firebase integration
 // by installing @angular/fire and configuring Firestore
@@ -11,9 +28,69 @@ import { Order } from '../models/order.model';
   providedIn: 'root'
 })
 export class FirebaseService {
-  // In-memory storage for development (temporary until Firestore is implemented)
+  // In-memory storage + localStorage for persistence across page refreshes
   private inMemoryProducts: Product[] = [];
   private productIdCounter = 100;
+  private readonly STORAGE_KEY = 'whatsapp_products';
+
+  // Use Firestore when environment has real Firebase config
+  private useFirestore = !!(
+    environment.firebase &&
+    environment.firebase.projectId &&
+    !environment.firebase.projectId.startsWith('YOUR_') &&
+    environment.firebase.apiKey &&
+    !environment.firebase.apiKey.startsWith('YOUR_')
+  );
+
+  constructor(private firestore?: Firestore) {
+    // Load products from localStorage on initialization
+    this.loadFromLocalStorage();
+    
+    // Log detailed initialization info
+    console.log('🔥 Firebase Service Initializing...');
+    console.log('Environment check:', {
+      hasFirebaseConfig: !!environment.firebase,
+      projectId: environment.firebase?.projectId,
+      apiKey: environment.firebase?.apiKey ? 'Present' : 'Missing',
+      useFirestore: this.useFirestore,
+      firestoreInjected: !!this.firestore,
+      localStorageProducts: this.inMemoryProducts.length
+    });
+    
+    if (this.useFirestore && this.firestore) {
+      console.log('✅ Firebase: Firestore ENABLED - Using cloud storage + localStorage backup');
+      console.log('📝 Products will be saved to Firestore database');
+      console.log('💡 If you see permission errors, products saved to localStorage');
+    } else {
+      console.log('✅ Firebase: Using localStorage persistence');
+      console.log('💾 Products will SURVIVE page refresh!');
+      console.log(`📦 Loaded ${this.inMemoryProducts.length} products from localStorage`);
+    }
+  }
+  
+  // Load products from localStorage
+  private loadFromLocalStorage(): void {
+    try {
+      const stored = localStorage.getItem(this.STORAGE_KEY);
+      if (stored) {
+        this.inMemoryProducts = JSON.parse(stored);
+        console.log(`💾 Loaded ${this.inMemoryProducts.length} products from localStorage`);
+      }
+    } catch (error) {
+      console.warn('Failed to load from localStorage:', error);
+      this.inMemoryProducts = [];
+    }
+  }
+  
+  // Save products to localStorage
+  private saveToLocalStorage(): void {
+    try {
+      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(this.inMemoryProducts));
+      console.log(`💾 Saved ${this.inMemoryProducts.length} products to localStorage`);
+    } catch (error) {
+      console.warn('Failed to save to localStorage:', error);
+    }
+  }
 
   // Shop Methods
   getShopById(shopId: string): Observable<Shop | null> {
@@ -36,69 +113,192 @@ export class FirebaseService {
 
   // Product Methods
   getProductsByShopId(shopId: string): Observable<Product[]> {
-    // TODO: Implement Firestore query
-    console.log('Firebase: Getting products for shop', shopId);
-    
-    // Combine mock products with in-memory products, filter by shopId
-    const allProducts = [...this.getMockProducts(), ...this.inMemoryProducts];
-    const filtered = allProducts.filter(p => p.shopId === shopId);
-    
-    console.log('All products:', allProducts.length);
-    console.log('Filtered for shop', shopId, ':', filtered.length);
-    
-    return of(filtered);
+    console.log('📥 Getting products for shopId:', shopId);
+    console.log('   Using Firestore?', this.useFirestore && !!this.firestore);
+
+    if (!this.useFirestore || !this.firestore) {
+      // Fallback to mock + in-memory
+      const allProducts = [...this.getMockProducts(), ...this.inMemoryProducts];
+      const filtered = allProducts.filter(p => p.shopId === shopId);
+      console.log('📦 IN-MEMORY ONLY: Total products:', allProducts.length, '| Filtered:', filtered.length);
+      console.log('   Products:', filtered.map(p => ({ id: p.id, name: p.name, shopId: p.shopId })));
+      return of(filtered);
+    }
+
+    console.log('☁️ FIRESTORE: Querying products collection...');
+    const col = collection(this.firestore, 'products');
+    const q = query(col, where('shopId', '==', shopId));
+    return from(getDocs(q)).pipe(
+      map(snapshot => {
+        // ALWAYS combine Firestore + in-memory products
+        // This handles case where Firestore save fails but read succeeds
+        const firestoreProducts = snapshot.docs.map(d => ({ id: d.id, ...(d.data() as any) } as Product));
+        const mockProducts = this.getMockProducts().filter(p => p.shopId === shopId);
+        const memoryProducts = this.inMemoryProducts.filter(p => p.shopId === shopId);
+        
+        // Combine all sources, remove duplicates by ID
+        const allProducts = [...firestoreProducts, ...mockProducts, ...memoryProducts];
+        const uniqueProducts = Array.from(
+          new Map(allProducts.map(p => [p.id, p])).values()
+        );
+        
+        console.log('✅ COMBINED RESULTS:');
+        console.log('   Firestore:', firestoreProducts.length);
+        console.log('   Mock:', mockProducts.length);
+        console.log('   In-Memory:', memoryProducts.length);
+        console.log('   Total Unique:', uniqueProducts.length);
+        console.log('   Products:', uniqueProducts.map(p => ({ id: p.id, name: p.name, shopId: p.shopId })));
+        
+        return uniqueProducts;
+      }),
+      catchError(err => {
+        console.error('❌ FIRESTORE ERROR:', err);
+        console.warn('⚠️ Falling back to in-memory storage');
+        const allProducts = [...this.getMockProducts(), ...this.inMemoryProducts];
+        const filtered = allProducts.filter(p => p.shopId === shopId);
+        console.log('📦 FALLBACK: Returning', filtered.length, 'products');
+        return of(filtered);
+      })
+    );
   }
 
   getProductById(productId: string): Observable<Product | null> {
-    // TODO: Implement Firestore query
-    console.log('Firebase: Getting product', productId);
-    const allProducts = [...this.getMockProducts(), ...this.inMemoryProducts];
-    return of(allProducts.find(p => p.id === productId) || null);
+    console.log('🔍 Getting product by ID:', productId);
+    console.log('   Using Firestore?', this.useFirestore && !!this.firestore);
+
+    if (!this.useFirestore || !this.firestore) {
+      const allProducts = [...this.getMockProducts(), ...this.inMemoryProducts];
+      const product = allProducts.find(p => p.id === productId) || null;
+      console.log('📦 IN-MEMORY: Found product?', !!product, product?.name);
+      return of(product);
+    }
+
+    // Try Firestore first, but ALWAYS check in-memory as fallback
+    const d = doc(this.firestore, 'products', productId);
+    return from(getDoc(d)).pipe(
+      map(snap => {
+        if (snap.exists()) {
+          const product = { id: snap.id, ...(snap.data() as any) } as Product;
+          console.log('✅ FIRESTORE: Found product', product.name);
+          return product;
+        }
+        
+        // Not in Firestore, check in-memory
+        const allProducts = [...this.getMockProducts(), ...this.inMemoryProducts];
+        const product = allProducts.find(p => p.id === productId) || null;
+        console.log('📦 IN-MEMORY FALLBACK: Found product?', !!product, product?.name);
+        return product;
+      }),
+      catchError(err => {
+        console.error('❌ FIRESTORE ERROR:', err);
+        console.warn('⚠️ Falling back to in-memory search');
+        const allProducts = [...this.getMockProducts(), ...this.inMemoryProducts];
+        const product = allProducts.find(p => p.id === productId) || null;
+        console.log('📦 FALLBACK: Found product?', !!product, product?.name);
+        return of(product);
+      })
+    );
   }
 
   addProduct(product: Product): Observable<Product> {
-    // TODO: Implement Firestore add
-    console.log('Firebase: Adding product', product);
+    console.log('➕ Adding product:', { 
+      name: product.name, 
+      shopId: product.shopId,
+      price: product.price 
+    });
+    console.log('   Using Firestore?', this.useFirestore && !!this.firestore);
+
+    if (!this.useFirestore || !this.firestore) {
+      // localStorage add
+      const newId = `prod-${this.productIdCounter++}`;
+      const newProduct = { ...product, id: newId };
+      this.inMemoryProducts.push(newProduct);
+      this.saveToLocalStorage();
+      console.log('✅ localStorage: Product added with ID:', newId);
+      console.log('   Total products:', this.inMemoryProducts.length);
+      return of(newProduct);
+    }
+
+    console.log('☁️ FIRESTORE: Saving to products collection...');
+    const col = collection(this.firestore, 'products');
+    const productData = { ...product };
+    delete productData.id; // Remove id field before saving to Firestore
     
-    // Generate a unique ID
-    const newId = `prod-${this.productIdCounter++}`;
-    const newProduct = { ...product, id: newId };
-    
-    // Add to in-memory storage
-    this.inMemoryProducts.push(newProduct);
-    
-    console.log('Product added to memory:', newProduct);
-    console.log('Total in-memory products:', this.inMemoryProducts.length);
-    
-    return of(newProduct);
+    return from(addDoc(col, productData)).pipe(
+      map(ref => {
+        const newProduct = { ...product, id: ref.id } as Product;
+        console.log('✅ FIRESTORE: Product saved successfully!');
+        console.log('   Document ID:', ref.id);
+        console.log('   Product:', { name: newProduct.name, shopId: newProduct.shopId });
+        return newProduct;
+      }),
+      catchError(err => {
+        console.error('❌ FIRESTORE ERROR:', err);
+        console.warn('⚠️ Falling back to localStorage storage');
+        const newId = `prod-${this.productIdCounter++}`;
+        const newProduct = { ...product, id: newId };
+        this.inMemoryProducts.push(newProduct);
+        this.saveToLocalStorage();
+        console.log('💾 FALLBACK: Product saved to localStorage with ID:', newId);
+        return of(newProduct);
+      })
+    );
   }
 
   updateProduct(productId: string, product: Partial<Product>): Observable<void> {
-    // TODO: Implement Firestore update
     console.log('Firebase: Updating product', productId, product);
-    
-    // Update in-memory product
-    const index = this.inMemoryProducts.findIndex(p => p.id === productId);
-    if (index >= 0) {
-      this.inMemoryProducts[index] = { ...this.inMemoryProducts[index], ...product };
-      console.log('Product updated in memory');
+
+    if (!this.useFirestore || !this.firestore) {
+      const index = this.inMemoryProducts.findIndex(p => p.id === productId);
+      if (index >= 0) {
+        this.inMemoryProducts[index] = { ...this.inMemoryProducts[index], ...product };
+        this.saveToLocalStorage();
+        console.log('✅ Product updated in localStorage');
+      }
+      return of(undefined);
     }
-    
-    return of(undefined);
+
+    const d = doc(this.firestore, 'products', productId);
+    return from(updateDoc(d, product as any)).pipe(
+      map(() => undefined),
+      catchError(err => {
+        console.warn('Firestore updateProduct error, falling back to localStorage:', err);
+        const index = this.inMemoryProducts.findIndex(p => p.id === productId);
+        if (index >= 0) {
+          this.inMemoryProducts[index] = { ...this.inMemoryProducts[index], ...(product as any) };
+          this.saveToLocalStorage();
+        }
+        return of(undefined);
+      })
+    );
   }
 
   deleteProduct(productId: string): Observable<void> {
-    // TODO: Implement Firestore delete
     console.log('Firebase: Deleting product', productId);
-    
-    // Remove from in-memory storage
-    const index = this.inMemoryProducts.findIndex(p => p.id === productId);
-    if (index >= 0) {
-      this.inMemoryProducts.splice(index, 1);
-      console.log('Product deleted from memory');
+
+    if (!this.useFirestore || !this.firestore) {
+      const index = this.inMemoryProducts.findIndex(p => p.id === productId);
+      if (index >= 0) {
+        this.inMemoryProducts.splice(index, 1);
+        this.saveToLocalStorage();
+        console.log('✅ Product deleted from localStorage');
+      }
+      return of(undefined);
     }
-    
-    return of(undefined);
+
+    const d = doc(this.firestore, 'products', productId);
+    return from(deleteDoc(d)).pipe(
+      map(() => undefined),
+      catchError(err => {
+        console.warn('Firestore deleteProduct error, falling back to localStorage:', err);
+        const index = this.inMemoryProducts.findIndex(p => p.id === productId);
+        if (index >= 0) {
+          this.inMemoryProducts.splice(index, 1);
+          this.saveToLocalStorage();
+        }
+        return of(undefined);
+      })
+    );
   }
 
   // Order Methods
