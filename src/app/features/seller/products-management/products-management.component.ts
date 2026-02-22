@@ -12,7 +12,9 @@ import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { MatTableModule } from '@angular/material/table';
 import { FirebaseService } from '../../../core/services/firebase.service';
 import { LanguageService } from '../../../core/services/language.service';
+import { ShopService } from '../../../core/services/shop.service';
 import { Product } from '../../../core/models/product.model';
+import { Shop } from '../../../core/models/shop.model';
 
 @Component({
   selector: 'app-products-management',
@@ -310,6 +312,8 @@ export class ProductsManagementComponent implements OnInit {
   editingProduct: Product | null = null;
   language = 'ta';
 
+  currentShop: Shop | null = null;
+
   productForm: Partial<Product> = {
     name: '',
     nameTA: '',
@@ -322,12 +326,13 @@ export class ProductsManagementComponent implements OnInit {
     categoryTA: '',
     imageUrl: '',
     inStock: true,
-    shopId: 'shop-1'
+    shopId: ''
   };
 
   constructor(
     private firebaseService: FirebaseService,
     private languageService: LanguageService,
+    private shopService: ShopService,
     private router: Router
   ) {}
 
@@ -337,11 +342,20 @@ export class ProductsManagementComponent implements OnInit {
       this.language = lang;
     });
 
-    this.loadProducts();
+    // Get current shop
+    this.shopService.currentShop$.subscribe(shop => {
+      this.currentShop = shop;
+      if (shop) {
+        this.productForm.shopId = shop.id;
+        this.loadProducts();
+      }
+    });
   }
 
   loadProducts() {
-    this.firebaseService.getProductsByShopId('shop-1').subscribe(products => {
+    if (!this.currentShop) return;
+    
+    this.firebaseService.getProductsByShopId(this.currentShop.id).subscribe(products => {
       this.products = products;
     });
   }
@@ -365,6 +379,14 @@ export class ProductsManagementComponent implements OnInit {
   }
 
   saveProduct() {
+    // Ensure shopId is set before saving
+    if (!this.productForm.shopId && this.currentShop) {
+      this.productForm.shopId = this.currentShop.id;
+    }
+
+    console.log('Saving product with shopId:', this.productForm.shopId);
+    console.log('Current shop ID:', this.currentShop?.id);
+
     if (this.editingProduct) {
       // Update existing product
       this.firebaseService.updateProduct(this.editingProduct.id!, this.productForm)
@@ -376,7 +398,8 @@ export class ProductsManagementComponent implements OnInit {
     } else {
       // Add new product
       this.firebaseService.addProduct(this.productForm as Product)
-        .subscribe(() => {
+        .subscribe((addedProduct) => {
+          console.log('Product added:', addedProduct);
           alert(this.language === 'ta' ? 'பொருள் சேர்க்கப்பட்டது' : 'Product added successfully');
           this.loadProducts();
           this.cancelEdit();
@@ -412,11 +435,15 @@ export class ProductsManagementComponent implements OnInit {
       categoryTA: '',
       imageUrl: '',
       inStock: true,
-      shopId: 'shop-1'
+      shopId: this.currentShop?.id || 'shop-1'
     };
   }
 
   goBack() {
-    this.router.navigate(['/seller/dashboard']);
+    if (this.currentShop) {
+      this.router.navigate([this.currentShop.slug, 'seller', 'dashboard']);
+    } else {
+      this.router.navigate(['/seller/dashboard']);
+    }
   }
 }

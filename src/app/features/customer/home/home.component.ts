@@ -318,17 +318,23 @@ export class HomeComponent implements OnInit {
   }
 
   viewProduct(productId: string) {
-    this.router.navigate(['/product', productId]);
+    if (this.shop) {
+      this.router.navigate([this.shop.slug, 'product', productId]);
+    }
   }
 
   navigateToProducts(category?: { name: string; nameTA?: string }) {
-    this.router.navigate(['/products'], { 
-      queryParams: category ? { category: category.name } : {} 
-    });
+    if (this.shop) {
+      this.router.navigate([this.shop.slug, 'products'], { 
+        queryParams: category ? { category: category.name } : {} 
+      });
+    }
   }
 
   navigateToCart() {
-    this.router.navigate(['/cart']);
+    if (this.shop) {
+      this.router.navigate([this.shop.slug, 'cart']);
+    }
   }
 
   getCategoryIcon(category: { name: string }): string {

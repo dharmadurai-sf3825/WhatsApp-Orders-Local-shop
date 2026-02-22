@@ -292,14 +292,20 @@ export class ProductsComponent implements OnInit {
   }
 
   viewProduct(productId: string) {
-    this.router.navigate(['/product', productId]);
+    if (this.currentShop) {
+      this.router.navigate([this.currentShop.slug, 'product', productId]);
+    }
   }
 
   navigateToCart() {
-    this.router.navigate(['/cart']);
+    if (this.currentShop) {
+      this.router.navigate([this.currentShop.slug, 'cart']);
+    }
   }
 
   goBack() {
-    this.router.navigate(['/home']);
+    if (this.currentShop) {
+      this.router.navigate([this.currentShop.slug, 'home']);
+    }
   }
 }

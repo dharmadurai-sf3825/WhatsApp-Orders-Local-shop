@@ -6,6 +6,8 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDividerModule } from '@angular/material/divider';
 import { LanguageService } from '../../../core/services/language.service';
+import { ShopService } from '../../../core/services/shop.service';
+import { Shop } from '../../../core/models/shop.model';
 
 @Component({
   selector: 'app-dashboard',
@@ -77,7 +79,7 @@ import { LanguageService } from '../../../core/services/language.service';
             <mat-icon>shopping_cart</mat-icon>
           </div>
           <div class="stat-info">
-            <h3>{{ language === 'ta' ? 'இன்றைய ஆர்டர்கள்' : 'Today\'s Orders' }}</h3>
+            <h3>{{ language === 'ta' ? 'இன்றைய ஆர்டர்கள்' : "Today's Orders" }}</h3>
             <p class="stat-value">0</p>
           </div>
         </mat-card>
@@ -87,7 +89,7 @@ import { LanguageService } from '../../../core/services/language.service';
             <mat-icon>currency_rupee</mat-icon>
           </div>
           <div class="stat-info">
-            <h3>{{ language === 'ta' ? 'இன்றைய வருவாய்' : 'Today\'s Revenue' }}</h3>
+            <h3>{{ language === 'ta' ? 'இன்றைய வருவாய்' : "Today's Revenue" }}</h3>
             <p class="stat-value">₹0</p>
           </div>
         </mat-card>
@@ -228,9 +230,11 @@ import { LanguageService } from '../../../core/services/language.service';
 })
 export class DashboardComponent implements OnInit {
   language = 'ta';
+  currentShop: Shop | null = null;
 
   constructor(
     private languageService: LanguageService,
+    private shopService: ShopService,
     private router: Router
   ) {}
 
@@ -239,13 +243,34 @@ export class DashboardComponent implements OnInit {
     this.languageService.language$.subscribe(lang => {
       this.language = lang;
     });
+
+    // Get current shop
+    this.shopService.currentShop$.subscribe(shop => {
+      this.currentShop = shop;
+    });
   }
 
   navigateTo(path: string) {
-    this.router.navigate([path]);
+    if (this.currentShop) {
+      // Extract the last part of path (e.g., '/seller/products' -> 'products')
+      const parts = path.split('/').filter(p => p);
+      const sellerIndex = parts.indexOf('seller');
+      if (sellerIndex >= 0 && parts.length > sellerIndex + 1) {
+        const page = parts[sellerIndex + 1];
+        this.router.navigate([this.currentShop.slug, 'seller', page]);
+      } else {
+        this.router.navigate([path]);
+      }
+    } else {
+      this.router.navigate([path]);
+    }
   }
 
   goBack() {
-    this.router.navigate(['/home']);
+    if (this.currentShop) {
+      this.router.navigate([this.currentShop.slug, 'home']);
+    } else {
+      this.router.navigate(['/home']);
+    }
   }
 }

@@ -8,7 +8,9 @@ import { MatBadgeModule } from '@angular/material/badge';
 import { FirebaseService } from '../../../core/services/firebase.service';
 import { CartService } from '../../../core/services/cart.service';
 import { LanguageService } from '../../../core/services/language.service';
+import { ShopService } from '../../../core/services/shop.service';
 import { Product } from '../../../core/models/product.model';
+import { Shop } from '../../../core/models/shop.model';
 
 @Component({
   selector: 'app-product-details',
@@ -269,11 +271,13 @@ export class ProductDetailsComponent implements OnInit {
   quantity = 1;
   cartCount = 0;
   language = 'ta';
+  currentShop: Shop | null = null;
 
   constructor(
     private firebaseService: FirebaseService,
     private cartService: CartService,
     private languageService: LanguageService,
+    private shopService: ShopService,
     private router: Router,
     private route: ActivatedRoute
   ) {}
@@ -282,6 +286,11 @@ export class ProductDetailsComponent implements OnInit {
     this.language = this.languageService.getCurrentLanguage();
     this.languageService.language$.subscribe(lang => {
       this.language = lang;
+    });
+
+    // Get current shop
+    this.shopService.currentShop$.subscribe(shop => {
+      this.currentShop = shop;
     });
 
     const productId = this.route.snapshot.paramMap.get('id');
@@ -311,17 +320,21 @@ export class ProductDetailsComponent implements OnInit {
   }
 
   addToCart() {
-    if (this.product) {
+    if (this.product && this.currentShop) {
       this.cartService.addToCart(this.product, this.quantity);
-      this.router.navigate(['/cart']);
+      this.router.navigate([this.currentShop.slug, 'cart']);
     }
   }
 
   navigateToCart() {
-    this.router.navigate(['/cart']);
+    if (this.currentShop) {
+      this.router.navigate([this.currentShop.slug, 'cart']);
+    }
   }
 
   goBack() {
-    this.router.navigate(['/products']);
+    if (this.currentShop) {
+      this.router.navigate([this.currentShop.slug, 'products']);
+    }
   }
 }

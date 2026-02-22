@@ -11,6 +11,9 @@ import { Order } from '../models/order.model';
   providedIn: 'root'
 })
 export class FirebaseService {
+  // In-memory storage for development (temporary until Firestore is implemented)
+  private inMemoryProducts: Product[] = [];
+  private productIdCounter = 100;
 
   // Shop Methods
   getShopById(shopId: string): Observable<Shop | null> {
@@ -35,31 +38,66 @@ export class FirebaseService {
   getProductsByShopId(shopId: string): Observable<Product[]> {
     // TODO: Implement Firestore query
     console.log('Firebase: Getting products for shop', shopId);
-    return of(this.getMockProducts());
+    
+    // Combine mock products with in-memory products, filter by shopId
+    const allProducts = [...this.getMockProducts(), ...this.inMemoryProducts];
+    const filtered = allProducts.filter(p => p.shopId === shopId);
+    
+    console.log('All products:', allProducts.length);
+    console.log('Filtered for shop', shopId, ':', filtered.length);
+    
+    return of(filtered);
   }
 
   getProductById(productId: string): Observable<Product | null> {
     // TODO: Implement Firestore query
     console.log('Firebase: Getting product', productId);
-    const products = this.getMockProducts();
-    return of(products.find(p => p.id === productId) || null);
+    const allProducts = [...this.getMockProducts(), ...this.inMemoryProducts];
+    return of(allProducts.find(p => p.id === productId) || null);
   }
 
-  addProduct(product: Product): Observable<string> {
+  addProduct(product: Product): Observable<Product> {
     // TODO: Implement Firestore add
     console.log('Firebase: Adding product', product);
-    return of('new-product-id');
+    
+    // Generate a unique ID
+    const newId = `prod-${this.productIdCounter++}`;
+    const newProduct = { ...product, id: newId };
+    
+    // Add to in-memory storage
+    this.inMemoryProducts.push(newProduct);
+    
+    console.log('Product added to memory:', newProduct);
+    console.log('Total in-memory products:', this.inMemoryProducts.length);
+    
+    return of(newProduct);
   }
 
   updateProduct(productId: string, product: Partial<Product>): Observable<void> {
     // TODO: Implement Firestore update
     console.log('Firebase: Updating product', productId, product);
+    
+    // Update in-memory product
+    const index = this.inMemoryProducts.findIndex(p => p.id === productId);
+    if (index >= 0) {
+      this.inMemoryProducts[index] = { ...this.inMemoryProducts[index], ...product };
+      console.log('Product updated in memory');
+    }
+    
     return of(undefined);
   }
 
   deleteProduct(productId: string): Observable<void> {
     // TODO: Implement Firestore delete
     console.log('Firebase: Deleting product', productId);
+    
+    // Remove from in-memory storage
+    const index = this.inMemoryProducts.findIndex(p => p.id === productId);
+    if (index >= 0) {
+      this.inMemoryProducts.splice(index, 1);
+      console.log('Product deleted from memory');
+    }
+    
     return of(undefined);
   }
 

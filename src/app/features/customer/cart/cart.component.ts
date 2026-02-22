@@ -466,16 +466,22 @@ export class CartComponent implements OnInit {
         : 'Order sent! Clear cart?'
       )) {
         this.cartService.clearCart();
-        this.router.navigate(['/home']);
+        if (this.shop) {
+          this.router.navigate([this.shop.slug, 'home']);
+        }
       }
     }, 1000);
   }
 
   continueShopping() {
-    this.router.navigate(['/home']);
+    if (this.shop) {
+      this.router.navigate([this.shop.slug, 'home']);
+    }
   }
 
   goBack() {
-    this.router.navigate(['/products']);
+    if (this.shop) {
+      this.router.navigate([this.shop.slug, 'products']);
+    }
   }
 }

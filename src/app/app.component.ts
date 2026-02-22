@@ -83,14 +83,15 @@ export class AppComponent implements OnInit {
       this.currentLang = lang;
     });
 
-    // Initialize shop based on URL
-    this.shopService.initializeShop();
-    
     // Subscribe to current shop changes
+    // Note: ShopService automatically initializes on route changes
     this.shopService.currentShop$.subscribe(shop => {
       this.currentShop = shop;
       this.shopName = shop?.name || null;
     });
+    
+    // Trigger initial shop load
+    this.shopService.initializeShop();
   }
 
   switchLanguage(lang: string) {

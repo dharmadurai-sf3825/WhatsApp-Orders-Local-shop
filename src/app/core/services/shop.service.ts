@@ -2,7 +2,8 @@ import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { Shop } from '../models/shop.model';
 import { FirebaseService } from './firebase.service';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, NavigationEnd } from '@angular/router';
+import { filter } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
@@ -14,7 +15,14 @@ export class ShopService {
   constructor(
     private firebaseService: FirebaseService,
     private router: Router
-  ) {}
+  ) {
+    // Listen to route changes to detect shop slug in URL path
+    this.router.events.pipe(
+      filter(event => event instanceof NavigationEnd)
+    ).subscribe(() => {
+      this.initializeShop();
+    });
+  }
 
   /**
    * Initialize shop based on URL
@@ -75,7 +83,16 @@ export class ShopService {
   private getShopFromPath(): string | null {
     const path = window.location.pathname;
     const segments = path.split('/').filter(s => s);
-    return segments[0] || null;
+    
+    // Exclude known non-shop routes
+    const excludedRoutes = ['seller', 'home', 'products', 'product', 'cart', 'admin'];
+    const firstSegment = segments[0];
+    
+    if (firstSegment && !excludedRoutes.includes(firstSegment)) {
+      return firstSegment;
+    }
+    
+    return null;
   }
 
   /**

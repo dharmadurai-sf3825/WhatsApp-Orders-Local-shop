@@ -11,7 +11,9 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { FirebaseService } from '../../../core/services/firebase.service';
 import { RazorpayService } from '../../../core/services/razorpay.service';
 import { LanguageService } from '../../../core/services/language.service';
+import { ShopService } from '../../../core/services/shop.service';
 import { Order, OrderStatus, PaymentStatus } from '../../../core/models/order.model';
+import { Shop } from '../../../core/models/shop.model';
 
 @Component({
   selector: 'app-orders-management',
@@ -400,11 +402,13 @@ import { Order, OrderStatus, PaymentStatus } from '../../../core/models/order.mo
 export class OrdersManagementComponent implements OnInit {
   orders: Order[] = [];
   language = 'ta';
+  currentShop: Shop | null = null;
 
   constructor(
     private firebaseService: FirebaseService,
     private razorpayService: RazorpayService,
     private languageService: LanguageService,
+    private shopService: ShopService,
     private router: Router
   ) {}
 
@@ -414,11 +418,19 @@ export class OrdersManagementComponent implements OnInit {
       this.language = lang;
     });
 
-    this.loadOrders();
+    // Get current shop
+    this.shopService.currentShop$.subscribe(shop => {
+      this.currentShop = shop;
+      if (shop) {
+        this.loadOrders();
+      }
+    });
   }
 
   loadOrders() {
-    this.firebaseService.getOrdersByShopId('shop-1').subscribe(orders => {
+    if (!this.currentShop) return;
+    
+    this.firebaseService.getOrdersByShopId(this.currentShop.id).subscribe(orders => {
       this.orders = orders;
     });
   }
@@ -540,6 +552,12 @@ export class OrdersManagementComponent implements OnInit {
   }
 
   goBack() {
-    this.router.navigate(['/seller/dashboard']);
+    if (this.currentShop) {
+      // Navigate within shop context
+      this.router.navigate([this.currentShop.slug, 'seller', 'dashboard']);
+    } else {
+      // Fallback to global seller route
+      this.router.navigate(['/seller/dashboard']);
+    }
   }
 }
