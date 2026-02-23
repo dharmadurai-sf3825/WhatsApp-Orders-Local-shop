@@ -13,6 +13,7 @@ import { MatTableModule } from '@angular/material/table';
 import { FirebaseService } from '../../../core/services/firebase.service';
 import { LanguageService } from '../../../core/services/language.service';
 import { ShopService } from '../../../core/services/shop.service';
+import { SellerHeaderComponent } from '../components/seller-header.component';
 import { Product } from '../../../core/models/product.model';
 import { Shop } from '../../../core/models/shop.model';
 
@@ -29,14 +30,14 @@ import { Shop } from '../../../core/models/shop.model';
     MatInputModule,
     MatSlideToggleModule,
     MatDialogModule,
-    MatTableModule
+    MatTableModule,
+    SellerHeaderComponent
   ],
   template: `
+    <app-seller-header></app-seller-header>
+    
     <div class="products-management-container">
       <div class="header">
-        <button mat-icon-button (click)="goBack()">
-          <mat-icon>arrow_back</mat-icon>
-        </button>
         <h1>{{ language === 'ta' ? 'பொருட்கள் நிர்வாகம்' : 'Products Management' }}</h1>
         <span class="spacer"></span>
         <button mat-raised-button color="primary" (click)="showAddProduct()">

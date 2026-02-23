@@ -7,6 +7,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatDividerModule } from '@angular/material/divider';
 import { LanguageService } from '../../../core/services/language.service';
 import { ShopService } from '../../../core/services/shop.service';
+import { SellerHeaderComponent } from '../components/seller-header.component';
 import { Shop } from '../../../core/models/shop.model';
 
 @Component({
@@ -17,14 +18,14 @@ import { Shop } from '../../../core/models/shop.model';
     MatCardModule,
     MatButtonModule,
     MatIconModule,
-    MatDividerModule
+    MatDividerModule,
+    SellerHeaderComponent
   ],
   template: `
+    <app-seller-header></app-seller-header>
+    
     <div class="dashboard-container">
       <div class="header">
-        <button mat-icon-button (click)="goBack()">
-          <mat-icon>arrow_back</mat-icon>
-        </button>
         <h1>{{ language === 'ta' ? 'விற்பனையாளர் கட்டுப்பாடு' : 'Seller Dashboard' }}</h1>
       </div>
 

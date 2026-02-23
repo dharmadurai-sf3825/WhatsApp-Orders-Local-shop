@@ -12,6 +12,7 @@ import { FirebaseService } from '../../../core/services/firebase.service';
 import { RazorpayService } from '../../../core/services/razorpay.service';
 import { LanguageService } from '../../../core/services/language.service';
 import { ShopService } from '../../../core/services/shop.service';
+import { SellerHeaderComponent } from '../components/seller-header.component';
 import { Order, OrderStatus, PaymentStatus } from '../../../core/models/order.model';
 import { Shop } from '../../../core/models/shop.model';
 
@@ -26,14 +27,14 @@ import { Shop } from '../../../core/models/shop.model';
     MatChipsModule,
     MatExpansionModule,
     MatDividerModule,
-    MatTabsModule
+    MatTabsModule,
+    SellerHeaderComponent
   ],
   template: `
+    <app-seller-header></app-seller-header>
+    
     <div class="orders-management-container">
       <div class="header">
-        <button mat-icon-button (click)="goBack()">
-          <mat-icon>arrow_back</mat-icon>
-        </button>
         <h1>{{ language === 'ta' ? 'ஆர்டர்கள் நிர்வாகம்' : 'Orders Management' }}</h1>
       </div>
 

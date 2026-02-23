@@ -1,0 +1,168 @@
+import { Injectable, inject } from '@angular/core';
+import { Auth, authState, User } from '@angular/fire/auth';
+import { Firestore, doc, getDoc, setDoc, collection, query, where, getDocs } from '@angular/fire/firestore';
+import { Observable, from, of } from 'rxjs';
+import { map, switchMap } from 'rxjs/operators';
+import { SellerUser, ShopOwnership } from '../models/user.model';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class AuthService {
+  private auth = inject(Auth);
+  private firestore = inject(Firestore);
+
+  // Observable of current user
+  user$ = authState(this.auth);
+
+  constructor() {}
+
+  /**
+   * Check if the current authenticated user has access to a specific shop
+   */
+  async canAccessShop(shopSlug: string): Promise<boolean> {
+    const user = this.auth.currentUser;
+    
+    if (!user) {
+      console.log('❌ No authenticated user');
+      return false;
+    }
+
+    try {
+      console.log(`🔍 Checking if user ${user.email} can access shop: ${shopSlug}`);
+
+      // Check in shop_ownership collection
+      const ownershipRef = collection(this.firestore, 'shop_ownership');
+      const q = query(
+        ownershipRef, 
+        where('userId', '==', user.uid),
+        where('shopSlug', '==', shopSlug)
+      );
+
+      const snapshot = await getDocs(q);
+      
+      if (!snapshot.empty) {
+        console.log(`✅ User has access to shop: ${shopSlug}`);
+        return true;
+      }
+
+      // Fallback: Check if user email matches shop pattern
+      // For demo: seller@ganeshbakery.com can access ganesh-bakery
+      const emailShopMatch = this.checkEmailShopMatch(user.email, shopSlug);
+      if (emailShopMatch) {
+        console.log(`✅ User email matches shop pattern: ${shopSlug}`);
+        // Create ownership record for future
+        await this.createShopOwnership(user.uid, shopSlug);
+        return true;
+      }
+
+      console.log(`❌ User does NOT have access to shop: ${shopSlug}`);
+      return false;
+
+    } catch (error) {
+      console.error('❌ Error checking shop access:', error);
+      
+      // Fallback to email pattern matching for offline mode
+      if (user.email) {
+        return this.checkEmailShopMatch(user.email, shopSlug);
+      }
+      
+      return false;
+    }
+  }
+
+  /**
+   * Check if user's email matches the shop slug pattern
+   * Example: seller@ganeshbakery.com matches ganesh-bakery
+   */
+  private checkEmailShopMatch(email: string | null, shopSlug: string): boolean {
+    if (!email) return false;
+
+    // Extract domain from email (before @)
+    const emailDomain = email.split('@')[1]?.toLowerCase() || '';
+    
+    // Remove common TLDs and convert to slug format
+    const domainPart = emailDomain
+      .replace(/\.(com|in|net|org)$/, '')
+      .replace(/[^a-z0-9]/g, '-');
+
+    // Convert shop slug to comparable format
+    const shopPart = shopSlug.toLowerCase().replace(/[^a-z0-9]/g, '');
+
+    console.log(`📧 Comparing: email domain="${domainPart}" with shop="${shopPart}"`);
+
+    // Check if they match
+    return domainPart.includes(shopPart) || shopPart.includes(domainPart);
+  }
+
+  /**
+   * Create shop ownership record
+   */
+  private async createShopOwnership(userId: string, shopSlug: string): Promise<void> {
+    try {
+      const ownershipData: ShopOwnership = {
+        shopId: shopSlug, // Using slug as ID for now
+        shopSlug: shopSlug,
+        userId: userId,
+        role: 'owner',
+        createdAt: new Date()
+      };
+
+      const docRef = doc(this.firestore, 'shop_ownership', `${userId}_${shopSlug}`);
+      await setDoc(docRef, ownershipData);
+      
+      console.log('✅ Created shop ownership record');
+    } catch (error) {
+      console.error('⚠️ Could not create ownership record:', error);
+    }
+  }
+
+  /**
+   * Get all shops the current user has access to
+   */
+  async getUserShops(): Promise<string[]> {
+    const user = this.auth.currentUser;
+    if (!user) return [];
+
+    try {
+      const ownershipRef = collection(this.firestore, 'shop_ownership');
+      const q = query(ownershipRef, where('userId', '==', user.uid));
+      const snapshot = await getDocs(q);
+
+      const shops = snapshot.docs.map(doc => doc.data() as ShopOwnership);
+      return shops.map(s => s.shopSlug);
+    } catch (error) {
+      console.error('Error fetching user shops:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Initialize user data in Firestore
+   */
+  async initializeUserData(user: User): Promise<void> {
+    try {
+      const userRef = doc(this.firestore, 'users', user.uid);
+      const userDoc = await getDoc(userRef);
+
+      if (!userDoc.exists()) {
+        const userData: SellerUser = {
+          uid: user.uid,
+          email: user.email || '',
+          displayName: user.displayName || undefined,
+          shopIds: [],
+          createdAt: new Date(),
+          lastLogin: new Date()
+        };
+
+        await setDoc(userRef, userData);
+        console.log('✅ User data initialized');
+      } else {
+        // Update last login
+        await setDoc(userRef, { lastLogin: new Date() }, { merge: true });
+      }
+    } catch (error) {
+      console.error('⚠️ Could not initialize user data:', error);
+    }
+  }
+}

@@ -1,6 +1,18 @@
 import { Routes } from '@angular/router';
 
 export const routes: Routes = [
+  // Unauthorized page
+  {
+    path: 'unauthorized',
+    loadComponent: () => import('./features/unauthorized/unauthorized.component').then(m => m.UnauthorizedComponent)
+  },
+  
+  // Admin routes
+  {
+    path: 'admin',
+    loadChildren: () => import('./features/admin/admin.routes').then(m => m.ADMIN_ROUTES)
+  },
+  
   // Seller routes (must come before shop routes to avoid conflicts)
   {
     path: 'seller',
