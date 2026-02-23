@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { Auth, authState, User } from '@angular/fire/auth';
-import { Firestore, doc, getDoc, setDoc, collection, query, where, getDocs } from '@angular/fire/firestore';
+import { Firestore, doc, getDoc, setDoc, collection, query, where, getDocs, updateDoc } from '@angular/fire/firestore';
 import { Observable, from, of } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
 import { SellerUser, ShopOwnership } from '../models/user.model';
@@ -31,27 +31,51 @@ export class AuthService {
     try {
       console.log(`🔍 Checking if user ${user.email} can access shop: ${shopSlug}`);
 
-      // Check in shop_ownership collection
       const ownershipRef = collection(this.firestore, 'shop_ownership');
-      const q = query(
-        ownershipRef, 
+
+      // 1) Primary check: owner record that matches userId + shopSlug
+      const byUidQuery = query(
+        ownershipRef,
         where('userId', '==', user.uid),
         where('shopSlug', '==', shopSlug)
       );
 
-      const snapshot = await getDocs(q);
-      
-      if (!snapshot.empty) {
-        console.log(`✅ User has access to shop: ${shopSlug}`);
+      const uidSnapshot = await getDocs(byUidQuery);
+      if (!uidSnapshot.empty) {
+        console.log(`✅ Found ownership by UID for shop: ${shopSlug}`);
         return true;
       }
 
-      // Fallback: Check if user email matches shop pattern
-      // For demo: seller@ganeshbakery.com can access ganesh-bakery
+      // 2) Fallback: look up by email + shopSlug (handles older records created before userId was set)
+      if (user.email) {
+        const byEmailQuery = query(
+          ownershipRef,
+          where('email', '==', user.email),
+          where('shopSlug', '==', shopSlug)
+        );
+
+        const emailSnapshot = await getDocs(byEmailQuery);
+        if (!emailSnapshot.empty) {
+          console.log(`🔎 Found ownership by email for shop: ${shopSlug}. Will link userId to this document.`);
+
+          // Link the existing doc to the user's UID for future fast checks
+          try {
+            const docRef = emailSnapshot.docs[0].ref;
+            await updateDoc(docRef, { userId: user.uid });
+            console.log('🔧 Linked userId to existing shop_ownership doc');
+          } catch (updateErr) {
+            console.warn('⚠️ Could not update shop_ownership with userId:', updateErr);
+          }
+
+          return true;
+        }
+      }
+
+      // 3) Final fallback: attempt email pattern matching (domain-based)
       const emailShopMatch = this.checkEmailShopMatch(user.email, shopSlug);
       if (emailShopMatch) {
         console.log(`✅ User email matches shop pattern: ${shopSlug}`);
-        // Create ownership record for future
+        // Create ownership record for future convenience
         await this.createShopOwnership(user.uid, shopSlug);
         return true;
       }
