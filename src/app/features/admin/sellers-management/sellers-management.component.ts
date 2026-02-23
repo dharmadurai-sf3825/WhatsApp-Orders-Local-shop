@@ -12,6 +12,7 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Firestore, collection, addDoc, getDocs, deleteDoc, doc } from '@angular/fire/firestore';
+import { AdminHeaderComponent } from '../admin-header/admin-header.component';
 
 interface SellerAccount {
   id?: string;
@@ -38,9 +39,12 @@ interface SellerAccount {
     MatTableModule,
     MatChipsModule,
     MatDialogModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    AdminHeaderComponent
   ],
   template: `
+    <app-admin-header></app-admin-header>
+    
     <div class="sellers-management-container">
       <div class="header">
         <h1>

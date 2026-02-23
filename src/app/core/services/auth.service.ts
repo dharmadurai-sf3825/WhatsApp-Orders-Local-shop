@@ -146,14 +146,18 @@ export class AuthService {
       const userDoc = await getDoc(userRef);
 
       if (!userDoc.exists()) {
-        const userData: SellerUser = {
+        const userData: any = {
           uid: user.uid,
           email: user.email || '',
-          displayName: user.displayName || undefined,
           shopIds: [],
           createdAt: new Date(),
           lastLogin: new Date()
         };
+
+        // Only add displayName if it exists (Firebase doesn't allow undefined)
+        if (user.displayName) {
+          userData.displayName = user.displayName;
+        }
 
         await setDoc(userRef, userData);
         console.log('✅ User data initialized');
