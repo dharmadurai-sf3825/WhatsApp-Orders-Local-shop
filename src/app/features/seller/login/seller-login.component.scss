@@ -1,0 +1,124 @@
+
+    .login-container {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    .login-card {
+      width: 100%;
+      max-width: 400px;
+      margin-bottom: 20px;
+    }
+
+    .header-content {
+      text-align: center;
+      width: 100%;
+      padding: 20px 0;
+    }
+
+    .header-content h1 {
+      color: var(--whatsapp-teal);
+      margin: 0 0 10px 0;
+    }
+
+    .header-content h2 {
+      color: #666;
+      font-size: 1.1rem;
+      margin: 0;
+      font-weight: 400;
+    }
+
+    .form-container {
+      padding: 20px 0;
+    }
+
+    .full-width {
+      width: 100%;
+    }
+
+    .error-message {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px;
+      background: #ffebee;
+      color: #c62828;
+      border-radius: 4px;
+      margin-top: 10px;
+    }
+
+    mat-card-actions {
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .divider {
+      text-align: center;
+      position: relative;
+      margin: 10px 0;
+    }
+
+    .divider::before,
+    .divider::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      width: 45%;
+      height: 1px;
+      background: #ddd;
+    }
+
+    .divider::before {
+      left: 0;
+    }
+
+    .divider::after {
+      right: 0;
+    }
+
+    .divider span {
+      background: white;
+      padding: 0 10px;
+      color: #999;
+      font-size: 0.9rem;
+    }
+
+    .info-card {
+      width: 100%;
+      max-width: 400px;
+      background: rgba(255, 255, 255, 0.95);
+    }
+
+    .info-card h3 {
+      color: var(--whatsapp-teal);
+      margin-top: 0;
+    }
+
+    .info-card p {
+      color: #666;
+      line-height: 1.6;
+    }
+
+    mat-spinner {
+      display: inline-block;
+      margin: 0 auto;
+    }
+
+    @media (max-width: 768px) {
+      .login-container {
+        padding: 10px;
+      }
+
+      .login-card,
+      .info-card {
+        max-width: 100%;
+      }
+    }
+  

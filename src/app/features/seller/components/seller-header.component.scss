@@ -1,0 +1,56 @@
+
+    .seller-header {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .header-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+      padding: 0 16px;
+    }
+
+    .left-section {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .shop-name {
+      font-size: 1.2rem;
+      font-weight: 500;
+    }
+
+    .right-section {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .user-email {
+      font-size: 0.9rem;
+      opacity: 0.9;
+    }
+
+    .logout-button {
+      color: #f44336;
+    }
+
+    .logout-button mat-icon {
+      color: #f44336;
+    }
+
+    @media (max-width: 768px) {
+      .user-email {
+        display: none;
+      }
+      
+      .shop-name {
+        font-size: 1rem;
+      }
+    }
+  

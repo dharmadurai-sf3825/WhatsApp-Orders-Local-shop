@@ -1,0 +1,45 @@
+<div class="unauthorized-container">
+  <mat-card class="unauthorized-card">
+    <mat-card-header>
+      <div class="header-content">
+        <mat-icon class="error-icon">lock</mat-icon>
+        <h1>{{ language === 'ta' ? 'அணுகல் மறுக்கப்பட்டது' : 'Access Denied' }}</h1>
+      </div>
+    </mat-card-header>
+
+    <mat-card-content>
+      <p class="message">
+        <span *ngIf="language === 'ta'">
+          நீங்கள் இந்த கடையை அணுக அங்கீகாரம் பெறவில்லை.
+          <br><br>
+          ஒவ்வொரு விற்பனையாளரும் தங்கள் கடையை மட்டுமே நிர்வகிக்க முடியும்.
+        </span>
+        <span *ngIf="language === 'en'">
+          You are not authorized to access this shop.
+          <br><br>
+          Each seller can only manage their own shop.
+        </span>
+      </p>
+
+      <div class="info-box" *ngIf="attemptedShop">
+        <mat-icon>info</mat-icon>
+        <div>
+          <strong>{{ language === 'ta' ? 'முயற்சிக்கப்பட்ட கடை' : 'Attempted Shop' }}:</strong>
+          <span class="shop-name">{{ attemptedShop }}</span>
+        </div>
+      </div>
+    </mat-card-content>
+
+    <mat-card-actions>
+      <button mat-raised-button color="primary" (click)="logout()">
+        <mat-icon>logout</mat-icon>
+        {{ language === 'ta' ? 'வெளியேறு' : 'Logout' }}
+      </button>
+
+      <button mat-button (click)="goHome()">
+        <mat-icon>home</mat-icon>
+        {{ language === 'ta' ? 'முகப்புக்கு செல்' : 'Go to Home' }}
+      </button>
+    </mat-card-actions>
+  </mat-card>
+</div>

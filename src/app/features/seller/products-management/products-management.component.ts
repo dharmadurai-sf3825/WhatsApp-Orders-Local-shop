@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -33,279 +33,8 @@ import { Shop } from '../../../core/models/shop.model';
     MatTableModule,
     SellerHeaderComponent
   ],
-  template: `
-    <app-seller-header></app-seller-header>
-    
-    <div class="products-management-container">
-      <div class="header">
-        <h1>{{ language === 'ta' ? 'பொருட்கள் நிர்வாகம்' : 'Products Management' }}</h1>
-        <span class="spacer"></span>
-        <button mat-raised-button color="primary" (click)="showAddProduct()">
-          <mat-icon>add</mat-icon>
-          {{ language === 'ta' ? 'புதிய பொருள்' : 'Add Product' }}
-        </button>
-      </div>
-
-      <!-- Add/Edit Product Form -->
-      <mat-card *ngIf="showForm" class="form-card">
-        <h2>{{ editingProduct ? (language === 'ta' ? 'பொருளை திருத்து' : 'Edit Product') : (language === 'ta' ? 'புதிய பொருளை சேர்' : 'Add New Product') }}</h2>
-        
-        <div class="form-grid">
-          <mat-form-field appearance="outline">
-            <mat-label>{{ language === 'ta' ? 'பெயர் (English)' : 'Name (English)' }}</mat-label>
-            <input matInput [(ngModel)]="productForm.name" required>
-          </mat-form-field>
-
-          <mat-form-field appearance="outline">
-            <mat-label>{{ language === 'ta' ? 'பெயர் (தமிழ்)' : 'Name (Tamil)' }}</mat-label>
-            <input matInput [(ngModel)]="productForm.nameTA">
-          </mat-form-field>
-
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>{{ language === 'ta' ? 'விளக்கம் (English)' : 'Description (English)' }}</mat-label>
-            <textarea matInput [(ngModel)]="productForm.description" rows="2"></textarea>
-          </mat-form-field>
-
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>{{ language === 'ta' ? 'விளக்கம் (தமிழ்)' : 'Description (Tamil)' }}</mat-label>
-            <textarea matInput [(ngModel)]="productForm.descriptionTA" rows="2"></textarea>
-          </mat-form-field>
-
-          <mat-form-field appearance="outline">
-            <mat-label>{{ language === 'ta' ? 'விலை (₹)' : 'Price (₹)' }}</mat-label>
-            <input matInput type="number" [(ngModel)]="productForm.price" required>
-          </mat-form-field>
-
-          <mat-form-field appearance="outline">
-            <mat-label>{{ language === 'ta' ? 'அலகு (English)' : 'Unit (English)' }}</mat-label>
-            <input matInput [(ngModel)]="productForm.unit" placeholder="piece, kg, liter" required>
-          </mat-form-field>
-
-          <mat-form-field appearance="outline">
-            <mat-label>{{ language === 'ta' ? 'அலகு (தமிழ்)' : 'Unit (Tamil)' }}</mat-label>
-            <input matInput [(ngModel)]="productForm.unitTA" placeholder="துண்டு, கிலோ, லிட்டர்">
-          </mat-form-field>
-
-          <mat-form-field appearance="outline">
-            <mat-label>{{ language === 'ta' ? 'வகை (English)' : 'Category (English)' }}</mat-label>
-            <input matInput [(ngModel)]="productForm.category">
-          </mat-form-field>
-
-          <mat-form-field appearance="outline">
-            <mat-label>{{ language === 'ta' ? 'வகை (தமிழ்)' : 'Category (Tamil)' }}</mat-label>
-            <input matInput [(ngModel)]="productForm.categoryTA">
-          </mat-form-field>
-
-          <mat-form-field appearance="outline">
-            <mat-label>{{ language === 'ta' ? 'படம் URL' : 'Image URL' }}</mat-label>
-            <input matInput [(ngModel)]="productForm.imageUrl">
-          </mat-form-field>
-
-          <div class="toggle-field">
-            <mat-slide-toggle [(ngModel)]="productForm.inStock">
-              {{ language === 'ta' ? 'கையிருப்பில் உள்ளது' : 'In Stock' }}
-            </mat-slide-toggle>
-          </div>
-        </div>
-
-        <div class="form-actions">
-          <button mat-button (click)="cancelEdit()">
-            {{ language === 'ta' ? 'ரத்து செய்' : 'Cancel' }}
-          </button>
-          <button mat-raised-button color="primary" (click)="saveProduct()">
-            {{ language === 'ta' ? 'சேமி' : 'Save' }}
-          </button>
-        </div>
-      </mat-card>
-
-      <!-- Products List -->
-      <mat-card class="list-card">
-        <h2>{{ language === 'ta' ? 'அனைத்து பொருட்கள்' : 'All Products' }} ({{ products.length }})</h2>
-        
-        <div class="products-table">
-          <div class="product-row header">
-            <div class="col-image">{{ language === 'ta' ? 'படம்' : 'Image' }}</div>
-            <div class="col-name">{{ language === 'ta' ? 'பெயர்' : 'Name' }}</div>
-            <div class="col-price">{{ language === 'ta' ? 'விலை' : 'Price' }}</div>
-            <div class="col-category">{{ language === 'ta' ? 'வகை' : 'Category' }}</div>
-            <div class="col-stock">{{ language === 'ta' ? 'கையிருப்பு' : 'Stock' }}</div>
-            <div class="col-actions">{{ language === 'ta' ? 'செயல்கள்' : 'Actions' }}</div>
-          </div>
-
-          <div class="product-row" *ngFor="let product of products">
-            <div class="col-image">
-              <div class="product-thumb" 
-                   [style.background-image]="product.imageUrl ? 'url(' + product.imageUrl + ')' : 'none'">
-              </div>
-            </div>
-            <div class="col-name">
-              <strong>{{ language === 'ta' && product.nameTA ? product.nameTA : product.name }}</strong>
-            </div>
-            <div class="col-price">
-              ₹{{ product.price }} / {{ language === 'ta' && product.unitTA ? product.unitTA : product.unit }}
-            </div>
-            <div class="col-category">
-              {{ language === 'ta' && product.categoryTA ? product.categoryTA : product.category }}
-            </div>
-            <div class="col-stock">
-              <span [class.in-stock]="product.inStock" [class.out-of-stock]="!product.inStock">
-                {{ product.inStock ? (language === 'ta' ? 'உள்ளது' : 'Yes') : (language === 'ta' ? 'இல்லை' : 'No') }}
-              </span>
-            </div>
-            <div class="col-actions">
-              <button mat-icon-button (click)="editProduct(product)">
-                <mat-icon>edit</mat-icon>
-              </button>
-              <button mat-icon-button color="warn" (click)="deleteProduct(product)">
-                <mat-icon>delete</mat-icon>
-              </button>
-            </div>
-          </div>
-
-          <p *ngIf="products.length === 0" class="no-products">
-            {{ language === 'ta' ? 'பொருட்கள் இல்லை' : 'No products found' }}
-          </p>
-        </div>
-      </mat-card>
-    </div>
-  `,
-  styles: [`
-    .products-management-container {
-      padding: 20px;
-      max-width: 1200px;
-      margin: 0 auto;
-    }
-
-    .header {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 20px;
-    }
-
-    .header h1 {
-      margin: 0;
-      color: var(--whatsapp-teal);
-    }
-
-    .spacer {
-      flex: 1;
-    }
-
-    mat-card {
-      margin-bottom: 20px;
-    }
-
-    mat-card h2 {
-      margin: 0 0 20px 0;
-      color: var(--whatsapp-teal);
-    }
-
-    .form-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-      gap: 15px;
-      margin-bottom: 20px;
-    }
-
-    .full-width {
-      grid-column: 1 / -1;
-    }
-
-    .toggle-field {
-      display: flex;
-      align-items: center;
-    }
-
-    .form-actions {
-      display: flex;
-      justify-content: flex-end;
-      gap: 10px;
-    }
-
-    .products-table {
-      overflow-x: auto;
-    }
-
-    .product-row {
-      display: grid;
-      grid-template-columns: 80px 2fr 1fr 1fr 100px 120px;
-      gap: 15px;
-      align-items: center;
-      padding: 15px;
-      border-bottom: 1px solid #eee;
-    }
-
-    .product-row.header {
-      background: #f5f5f5;
-      font-weight: 600;
-      color: var(--whatsapp-teal);
-    }
-
-    .product-thumb {
-      width: 60px;
-      height: 60px;
-      background-color: #f0f0f0;
-      background-size: cover;
-      background-position: center;
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .product-thumb:not([style*="url"]):before {
-      content: "📦";
-      font-size: 24px;
-    }
-
-    .in-stock {
-      color: var(--whatsapp-green);
-      font-weight: 600;
-    }
-
-    .out-of-stock {
-      color: #f44336;
-      font-weight: 600;
-    }
-
-    .col-actions {
-      display: flex;
-      gap: 5px;
-    }
-
-    .no-products {
-      text-align: center;
-      padding: 40px;
-      color: #999;
-    }
-
-    @media (max-width: 768px) {
-      .products-management-container {
-        padding: 10px;
-      }
-
-      .form-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .product-row {
-        grid-template-columns: 1fr;
-        gap: 10px;
-      }
-
-      .product-row.header {
-        display: none;
-      }
-
-      .product-row > div:before {
-        content: attr(class);
-        font-weight: 600;
-        display: block;
-        margin-bottom: 5px;
-      }
-    }
-  `]
+  templateUrl: './products-management.component.html',
+  styleUrl: './products-management.component.scss'
 })
 export class ProductsManagementComponent implements OnInit {
   products: Product[] = [];
@@ -334,7 +63,8 @@ export class ProductsManagementComponent implements OnInit {
     private firebaseService: FirebaseService,
     private languageService: LanguageService,
     private shopService: ShopService,
-    private router: Router
+    private router: Router,
+    private route: ActivatedRoute
   ) {}
 
   ngOnInit() {
@@ -343,8 +73,20 @@ export class ProductsManagementComponent implements OnInit {
       this.language = lang;
     });
 
-    // Get current shop
+    // Get shop slug from route params and initialize shop
+    this.route.paramMap.subscribe(params => {
+      const shopSlug = params.get('shopSlug');
+      console.log('Products Management - Shop Slug from route:', shopSlug);
+      
+      if (shopSlug) {
+        // Initialize shop with the slug from URL
+        this.shopService.initializeShop(shopSlug);
+      }
+    });
+
+    // Subscribe to shop changes
     this.shopService.currentShop$.subscribe(shop => {
+      console.log('Products Management - Current shop updated:', shop);
       this.currentShop = shop;
       if (shop) {
         this.productForm.shopId = shop.id;
@@ -441,10 +183,12 @@ export class ProductsManagementComponent implements OnInit {
   }
 
   goBack() {
-    if (this.currentShop) {
-      this.router.navigate([this.currentShop.slug, 'seller', 'dashboard']);
+    const shopSlug = this.route.snapshot.paramMap.get('shopSlug');
+    if (shopSlug) {
+      this.router.navigate(['/seller', shopSlug, 'dashboard']);
     } else {
-      this.router.navigate(['/seller/dashboard']);
+      this.router.navigate(['/seller/login']);
     }
   }
 }
+

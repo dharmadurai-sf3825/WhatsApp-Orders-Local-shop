@@ -1,0 +1,23 @@
+
+    .app-toolbar {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      background-color: var(--whatsapp-green);
+    }
+    
+    .spacer {
+      flex: 1 1 auto;
+    }
+    
+    .app-content {
+      min-height: calc(100vh - 64px);
+      padding-bottom: 20px;
+    }
+    
+    @media (max-width: 768px) {
+      .app-content {
+        min-height: calc(100vh - 56px);
+      }
+    }
+  

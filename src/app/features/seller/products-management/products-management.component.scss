@@ -1,0 +1,137 @@
+
+    .products-management-container {
+      padding: 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .header h1 {
+      margin: 0;
+      color: var(--whatsapp-teal);
+    }
+
+    .spacer {
+      flex: 1;
+    }
+
+    mat-card {
+      margin-bottom: 20px;
+    }
+
+    mat-card h2 {
+      margin: 0 0 20px 0;
+      color: var(--whatsapp-teal);
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .full-width {
+      grid-column: 1 / -1;
+    }
+
+    .toggle-field {
+      display: flex;
+      align-items: center;
+    }
+
+    .form-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
+    .products-table {
+      overflow-x: auto;
+    }
+
+    .product-row {
+      display: grid;
+      grid-template-columns: 80px 2fr 1fr 1fr 100px 120px;
+      gap: 15px;
+      align-items: center;
+      padding: 15px;
+      border-bottom: 1px solid #eee;
+    }
+
+    .product-row.header {
+      background: #f5f5f5;
+      font-weight: 600;
+      color: var(--whatsapp-teal);
+    }
+
+    .product-thumb {
+      width: 60px;
+      height: 60px;
+      background-color: #f0f0f0;
+      background-size: cover;
+      background-position: center;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .product-thumb:not([style*="url"]):before {
+      content: "📦";
+      font-size: 24px;
+    }
+
+    .in-stock {
+      color: var(--whatsapp-green);
+      font-weight: 600;
+    }
+
+    .out-of-stock {
+      color: #f44336;
+      font-weight: 600;
+    }
+
+    .col-actions {
+      display: flex;
+      gap: 5px;
+    }
+
+    .no-products {
+      text-align: center;
+      padding: 40px;
+      color: #999;
+    }
+
+    @media (max-width: 768px) {
+      .products-management-container {
+        padding: 10px;
+      }
+
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .product-row {
+        grid-template-columns: 1fr;
+        gap: 10px;
+      }
+
+      .product-row.header {
+        display: none;
+      }
+
+      .product-row > div:before {
+        content: attr(class);
+        font-weight: 600;
+        display: block;
+        margin-bottom: 5px;
+      }
+    }
+  

@@ -1,0 +1,74 @@
+
+    <div class="login-container">
+      <mat-card class="login-card">
+        <mat-card-header>
+          <div class="header-content">
+            <h1>{{ language === 'ta' ? 'விற்பனையாளர் உள்நுழைவு' : 'Seller Login' }}</h1>
+            <h2 *ngIf="currentShop">{{ currentShop.name }}</h2>
+          </div>
+        </mat-card-header>
+
+        <mat-card-content>
+          <!-- Login Form -->
+          <div class="form-container">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>{{ language === 'ta' ? 'மின்னஞ்சல்' : 'Email' }}</mat-label>
+              <input matInput type="email" [(ngModel)]="email" [disabled]="loading" required>
+              <mat-icon matPrefix>email</mat-icon>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>{{ language === 'ta' ? 'கடவுச்சொல்' : 'Password' }}</mat-label>
+              <input matInput [type]="hidePassword ? 'password' : 'text'" 
+                     [(ngModel)]="password" [disabled]="loading" required>
+              <mat-icon matPrefix>lock</mat-icon>
+              <button mat-icon-button matSuffix (click)="hidePassword = !hidePassword" type="button">
+                <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+              </button>
+            </mat-form-field>
+
+            <div class="error-message" *ngIf="errorMessage">
+              <mat-icon>error</mat-icon>
+              <span>{{ errorMessage }}</span>
+            </div>
+          </div>
+        </mat-card-content>
+
+        <mat-card-actions>
+          <button mat-raised-button color="primary" 
+                  (click)="login()" 
+                  [disabled]="loading || !email || !password"
+                  class="full-width">
+            <mat-spinner *ngIf="loading" diameter="20"></mat-spinner>
+            <span *ngIf="!loading">
+              {{ language === 'ta' ? 'உள்நுழை' : 'Login' }}
+            </span>
+          </button>
+
+          <div class="divider">
+            <span>{{ language === 'ta' ? 'அல்லது' : 'OR' }}</span>
+          </div>
+
+          <button mat-button color="accent" 
+                  (click)="goToCustomer()"
+                  [disabled]="loading"
+                  class="full-width">
+            {{ language === 'ta' ? 'வாடிக்கையாளராக தொடரவும்' : 'Continue as Customer' }}
+          </button>
+        </mat-card-actions>
+      </mat-card>
+
+      <!-- Info Box -->
+      <mat-card class="info-card">
+        <h3>{{ language === 'ta' ? 'விற்பனையாளர் அணுகல்' : 'Seller Access' }}</h3>
+        <p *ngIf="language === 'ta'">
+          இந்த பகுதி கடை உரிமையாளர்களுக்கானது. உங்களிடம் விற்பனையாளர் கணக்கு இல்லை என்றால், 
+          கடை உரிமையாளரை தொடர்பு கொள்ளவும்.
+        </p>
+        <p *ngIf="language === 'en'">
+          This section is for shop owners only. If you don't have a seller account, 
+          please contact the shop owner.
+        </p>
+      </mat-card>
+    </div>
+  

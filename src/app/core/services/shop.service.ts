@@ -11,6 +11,8 @@ import { filter } from 'rxjs/operators';
 export class ShopService {
   private currentShopSubject = new BehaviorSubject<Shop | null>(null);
   public currentShop$ = this.currentShopSubject.asObservable();
+  // Prevent overlapping loads for same slug
+  private loadingShopSlug: string | null = null;
 
   constructor(
     private firebaseService: FirebaseService,
@@ -32,6 +34,12 @@ export class ShopService {
    * - Subdomain: ganesh-bakery.yourapp.com
    */
   initializeShop(shopSlug?: string): void {
+    // Skip shop loading entirely for seller routes
+    if (this.isSellerRoute()) {
+      console.log('Seller route detected, skipping shop initialization');
+      return;
+    }
+
     if (!shopSlug) {
       // Try to get from URL
       const urlParams = new URLSearchParams(window.location.search);
@@ -52,19 +60,35 @@ export class ShopService {
    * Load shop data from Firebase
    */
   private loadShop(shopSlug: string): void {
+    // Prevent duplicate/concurrent loads for the same slug
+    if (this.loadingShopSlug === shopSlug) {
+      console.log('Shop load already in progress for', shopSlug);
+      return;
+    }
+    this.loadingShopSlug = shopSlug;
+    console.log('Loading shop:', shopSlug);
     this.firebaseService.getShopBySlug(shopSlug).subscribe({
       next: (shop) => {
         if (shop && shop.isActive) {
           this.currentShopSubject.next(shop);
           this.applyShopTheme(shop);
         } else {
-          console.error('Shop not found or inactive:', shopSlug);
-          this.handleInvalidShop();
+          console.warn('Shop not found or inactive:', shopSlug);
+          // Do not navigate away here. Set current shop to null so seller
+          // routes (login) can render even when shop data is missing.
+          this.currentShopSubject.next(null);
         }
       },
       error: (error) => {
         console.error('Error loading shop:', error);
-        this.handleInvalidShop();
+        // On Firestore/network errors, do not block seller routes.
+        this.currentShopSubject.next(null);
+      }
+    ,
+      complete: () => {
+        // Clear loading flag when observable completes
+        this.loadingShopSlug = null;
+        console.log('Finished loading shop:', shopSlug);
       }
     });
   }
@@ -138,23 +162,23 @@ export class ShopService {
    * Handle case when no shop is specified
    */
   private handleNoShop(): void {
-    // Option 1: Redirect to shop selection page
-    // this.router.navigate(['/select-shop']);
-    
-    // Option 2: Show error message
-    // this.router.navigate(['/error'], { queryParams: { message: 'No shop specified' }});
-    
-    // For now, load a default demo shop
-    console.warn('No shop specified, loading default demo shop');
-    this.loadShop('demo-shop');
+    console.error('No shop specified in URL');
+    this.router.navigate(['/error'], { queryParams: { message: 'No shop specified' }});
   }
 
   /**
    * Handle invalid or inactive shop
    */
   private handleInvalidShop(): void {
-    // this.router.navigate(['/error'], { queryParams: { message: 'Shop not found' }});
-    console.error('Invalid shop, loading default demo shop');
-    this.loadShop('demo-shop');
+    console.error('Shop not found or inactive');
+    this.router.navigate(['/error'], { queryParams: { message: 'Shop not found' }});
+  }
+
+  /**
+   * Check if current route is a seller route
+   */
+  private isSellerRoute(): boolean {
+    const currentUrl = this.router.url;
+    return currentUrl.includes('/seller');
   }
 }

@@ -36,88 +36,79 @@ A modern Progressive Web App (PWA) that enables local shops to receive orders vi
 - Razorpay account
 - WhatsApp Business number
 
-## 🛠️ Getting Started
+## 🛠️ Quick Start
 
-### 1. Clone the repository
+### 1. Clone and Install
 
-```bash
+```powershell
 git clone https://github.com/yourusername/WhatsApp-Orders-Local-shop.git
 cd WhatsApp-Orders-Local-shop
-```
-
-### 2. Install dependencies
-
-```bash
 npm install
 ```
 
-### 3. Configure environment
+### 2. Configure Firebase
 
-Update `src/environments/environment.ts` with your credentials:
+1. Create Firebase project at [Firebase Console](https://console.firebase.google.com/)
+2. Enable Authentication, Firestore, and Hosting
+3. Copy your Firebase config to `src/environments/environment.ts`
 
 ```typescript
 export const environment = {
   production: false,
   firebase: {
-    apiKey: 'YOUR_FIREBASE_API_KEY',
-    authDomain: 'YOUR_PROJECT_ID.firebaseapp.com',
-    projectId: 'YOUR_PROJECT_ID',
-    storageBucket: 'YOUR_PROJECT_ID.appspot.com',
-    messagingSenderId: 'YOUR_MESSAGING_SENDER_ID',
-    appId: 'YOUR_APP_ID'
+    apiKey: 'YOUR_API_KEY',
+    authDomain: 'your-project.firebaseapp.com',
+    projectId: 'your-project',
+    // ... rest of config
   },
-  razorpay: {
-    keyId: 'YOUR_RAZORPAY_KEY_ID',
-    keySecret: 'YOUR_RAZORPAY_KEY_SECRET'
-  },
-  whatsapp: {
-    businessNumber: '918220762702',
-    defaultMessage: 'Hello, I want to place an order'
-  }
+  razorpay: { keyId: 'rzp_test_XXXXXXXXXX' },
+  whatsapp: { businessNumber: '918220762702' }
 };
 ```
 
-### 4. Run development server
+### 3. Run Development Server
 
-```bash
+```powershell
 npm start
 ```
 
-Navigate to `http://localhost:4200/`
+Navigate to `http://localhost:4200/seller/login`
 
-### 5. Build for production
+### 4. Build & Deploy
 
-```bash
+```powershell
 npm run build:prod
-```
-
-## 📦 Deployment
-
-For complete deployment instructions, see [DEPLOYMENT.md](./DEPLOYMENT.md)
-
-**Quick Deploy to Firebase:**
-```bash
-npm run build:prod
-firebase login
-firebase init
 firebase deploy
 ```
+
+📚 **For detailed setup instructions, see [SETUP-GUIDE.md](./SETUP-GUIDE.md)**  
+🚀 **For deployment guide, see [DEPLOYMENT.md](./DEPLOYMENT.md)**
 
 ## 📁 Project Structure
 
 ```
-src/
-├── app/
-│   ├── core/
-│   │   ├── models/          # Data models
-│   │   └── services/        # Core services
-│   ├── features/
-│   │   ├── customer/        # Customer-facing features
-│   │   └── seller/          # Seller dashboard
-│   └── shared/              # Shared components
+src/app/
+├── core/
+│   ├── models/              # Data models (Product, Order, Shop, etc.)
+│   └── services/            # Core services (Auth, Firebase, Cart, etc.)
+├── features/
+│   ├── customer/            # Customer storefront (Home, Products, Cart)
+│   ├── seller/              # Seller dashboard (Products, Orders mgmt)
+│   └── admin/               # Admin panel (Seller management)
 ├── environments/            # Environment configurations
-└── assets/                  # Static assets
+└── assets/                  # Icons, images, i18n translations
 ```
+
+## 🗺️ URL Structure
+
+```
+Customer:  /:shopSlug/home              → Browse shop products
+Seller:    /seller/login                → Seller login
+           /seller/:shopSlug/dashboard  → Manage products & orders
+Admin:     /admin/login                 → Admin panel
+```
+
+📚 **For complete architecture details, see [ARCHITECTURE.md](./ARCHITECTURE.md)**
 
 ## 🔒 Security
 
@@ -175,6 +166,15 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 For support, email your-email@example.com or join our Slack channel.
 
+## � Documentation
+
+| Document | Description |
+|----------|-------------|
+| [SETUP-GUIDE.md](./SETUP-GUIDE.md) | Complete development setup instructions |
+| [DEPLOYMENT.md](./DEPLOYMENT.md) | Production deployment guide |
+| [ARCHITECTURE.md](./ARCHITECTURE.md) | Technical architecture & routing details |
+| [TROUBLESHOOTING.md](./TROUBLESHOOTING.md) | Common issues and solutions |
+
 ## 🙏 Acknowledgments
 
 - Angular Team for the amazing framework
@@ -184,4 +184,4 @@ For support, email your-email@example.com or join our Slack channel.
 
 ---
 
-**Made with ❤️ for local businesses**
+**Made with ❤️ for local businesses in India** 🇮🇳

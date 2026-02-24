@@ -1,0 +1,136 @@
+
+    <app-seller-header></app-seller-header>
+    
+    <div class="products-management-container">
+      <div class="header">
+        <h1>{{ language === 'ta' ? 'பொருட்கள் நிர்வாகம்' : 'Products Management' }}</h1>
+        <span class="spacer"></span>
+        <button mat-raised-button color="primary" (click)="showAddProduct()">
+          <mat-icon>add</mat-icon>
+          {{ language === 'ta' ? 'புதிய பொருள்' : 'Add Product' }}
+        </button>
+      </div>
+
+      <!-- Add/Edit Product Form -->
+      <mat-card *ngIf="showForm" class="form-card">
+        <h2>{{ editingProduct ? (language === 'ta' ? 'பொருளை திருத்து' : 'Edit Product') : (language === 'ta' ? 'புதிய பொருளை சேர்' : 'Add New Product') }}</h2>
+        
+        <div class="form-grid">
+          <mat-form-field appearance="outline">
+            <mat-label>{{ language === 'ta' ? 'பெயர் (English)' : 'Name (English)' }}</mat-label>
+            <input matInput [(ngModel)]="productForm.name" required>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>{{ language === 'ta' ? 'பெயர் (தமிழ்)' : 'Name (Tamil)' }}</mat-label>
+            <input matInput [(ngModel)]="productForm.nameTA">
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>{{ language === 'ta' ? 'விளக்கம் (English)' : 'Description (English)' }}</mat-label>
+            <textarea matInput [(ngModel)]="productForm.description" rows="2"></textarea>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>{{ language === 'ta' ? 'விளக்கம் (தமிழ்)' : 'Description (Tamil)' }}</mat-label>
+            <textarea matInput [(ngModel)]="productForm.descriptionTA" rows="2"></textarea>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>{{ language === 'ta' ? 'விலை (₹)' : 'Price (₹)' }}</mat-label>
+            <input matInput type="number" [(ngModel)]="productForm.price" required>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>{{ language === 'ta' ? 'அலகு (English)' : 'Unit (English)' }}</mat-label>
+            <input matInput [(ngModel)]="productForm.unit" placeholder="piece, kg, liter" required>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>{{ language === 'ta' ? 'அலகு (தமிழ்)' : 'Unit (Tamil)' }}</mat-label>
+            <input matInput [(ngModel)]="productForm.unitTA" placeholder="துண்டு, கிலோ, லிட்டர்">
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>{{ language === 'ta' ? 'வகை (English)' : 'Category (English)' }}</mat-label>
+            <input matInput [(ngModel)]="productForm.category">
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>{{ language === 'ta' ? 'வகை (தமிழ்)' : 'Category (Tamil)' }}</mat-label>
+            <input matInput [(ngModel)]="productForm.categoryTA">
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>{{ language === 'ta' ? 'படம் URL' : 'Image URL' }}</mat-label>
+            <input matInput [(ngModel)]="productForm.imageUrl">
+          </mat-form-field>
+
+          <div class="toggle-field">
+            <mat-slide-toggle [(ngModel)]="productForm.inStock">
+              {{ language === 'ta' ? 'கையிருப்பில் உள்ளது' : 'In Stock' }}
+            </mat-slide-toggle>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button mat-button (click)="cancelEdit()">
+            {{ language === 'ta' ? 'ரத்து செய்' : 'Cancel' }}
+          </button>
+          <button mat-raised-button color="primary" (click)="saveProduct()">
+            {{ language === 'ta' ? 'சேமி' : 'Save' }}
+          </button>
+        </div>
+      </mat-card>
+
+      <!-- Products List -->
+      <mat-card class="list-card">
+        <h2>{{ language === 'ta' ? 'அனைத்து பொருட்கள்' : 'All Products' }} ({{ products.length }})</h2>
+        
+        <div class="products-table">
+          <div class="product-row header">
+            <div class="col-image">{{ language === 'ta' ? 'படம்' : 'Image' }}</div>
+            <div class="col-name">{{ language === 'ta' ? 'பெயர்' : 'Name' }}</div>
+            <div class="col-price">{{ language === 'ta' ? 'விலை' : 'Price' }}</div>
+            <div class="col-category">{{ language === 'ta' ? 'வகை' : 'Category' }}</div>
+            <div class="col-stock">{{ language === 'ta' ? 'கையிருப்பு' : 'Stock' }}</div>
+            <div class="col-actions">{{ language === 'ta' ? 'செயல்கள்' : 'Actions' }}</div>
+          </div>
+
+          <div class="product-row" *ngFor="let product of products">
+            <div class="col-image">
+              <div class="product-thumb" 
+                   [style.background-image]="product.imageUrl ? 'url(' + product.imageUrl + ')' : 'none'">
+              </div>
+            </div>
+            <div class="col-name">
+              <strong>{{ language === 'ta' && product.nameTA ? product.nameTA : product.name }}</strong>
+            </div>
+            <div class="col-price">
+              ₹{{ product.price }} / {{ language === 'ta' && product.unitTA ? product.unitTA : product.unit }}
+            </div>
+            <div class="col-category">
+              {{ language === 'ta' && product.categoryTA ? product.categoryTA : product.category }}
+            </div>
+            <div class="col-stock">
+              <span [class.in-stock]="product.inStock" [class.out-of-stock]="!product.inStock">
+                {{ product.inStock ? (language === 'ta' ? 'உள்ளது' : 'Yes') : (language === 'ta' ? 'இல்லை' : 'No') }}
+              </span>
+            </div>
+            <div class="col-actions">
+              <button mat-icon-button (click)="editProduct(product)">
+                <mat-icon>edit</mat-icon>
+              </button>
+              <button mat-icon-button color="warn" (click)="deleteProduct(product)">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </div>
+          </div>
+
+          <p *ngIf="products.length === 0" class="no-products">
+            {{ language === 'ta' ? 'பொருட்கள் இல்லை' : 'No products found' }}
+          </p>
+        </div>
+      </mat-card>
+    </div>
+  

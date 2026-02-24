@@ -1,0 +1,61 @@
+
+    <div class="home-container">
+      <!-- Shop Header -->
+      <div class="shop-header" *ngIf="shop">
+        <h1>{{ shop.name }}</h1>
+        <p class="address">{{ shop.address }}</p>
+      </div>
+
+      <!-- Categories -->
+      <div class="categories-section">
+        <h2>{{ language === 'ta' ? 'வகைகள்' : 'Categories' }}</h2>
+        <div class="categories-grid">
+          <div class="category-card" *ngFor="let category of categories" 
+               (click)="navigateToProducts(category)">
+            <mat-icon>{{ getCategoryIcon(category) }}</mat-icon>
+            <span>{{ language === 'ta' && category.nameTA ? category.nameTA : category.name }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Featured Products -->
+      <div class="products-section">
+        <h2>{{ language === 'ta' ? 'பிரபலமான பொருட்கள்' : 'Popular Items' }}</h2>
+        <div class="products-grid">
+          <mat-card *ngFor="let product of featuredProducts" class="product-card">
+            <div class="product-image" 
+                 [style.background-image]="product.imageUrl ? 'url(' + product.imageUrl + ')' : 'none'">
+              <span class="badge" *ngIf="!product.inStock">
+                {{ language === 'ta' ? 'கையிருப்பு இல்லை' : 'Out of Stock' }}
+              </span>
+            </div>
+            <mat-card-content>
+              <h3>{{ language === 'ta' && product.nameTA ? product.nameTA : product.name }}</h3>
+              <p class="price">₹{{ product.price }} / {{ language === 'ta' && product.unitTA ? product.unitTA : product.unit }}</p>
+              <p class="description">
+                {{ language === 'ta' && product.descriptionTA ? product.descriptionTA : product.description }}
+              </p>
+            </mat-card-content>
+            <mat-card-actions>
+              <button mat-raised-button color="primary" 
+                      [disabled]="!product.inStock"
+                      (click)="addToCart(product)">
+                <mat-icon>add_shopping_cart</mat-icon>
+                {{ language === 'ta' ? 'கூடையில் சேர்' : 'Add to Cart' }}
+              </button>
+              <button mat-button (click)="viewProduct(product.id!)">
+                {{ language === 'ta' ? 'விவரங்கள்' : 'Details' }}
+              </button>
+            </mat-card-actions>
+          </mat-card>
+        </div>
+      </div>
+
+      <!-- View Cart FAB -->
+      <button mat-fab class="cart-fab whatsapp-btn" 
+              *ngIf="cartCount > 0"
+              (click)="navigateToCart()">
+        <mat-icon [matBadge]="cartCount" matBadgeColor="warn">shopping_cart</mat-icon>
+      </button>
+    </div>
+  

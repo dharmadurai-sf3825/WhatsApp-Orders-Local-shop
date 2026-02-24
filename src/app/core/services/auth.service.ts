@@ -48,6 +48,8 @@ export class AuthService {
 
       // 2) Fallback: look up by email + shopSlug (handles older records created before userId was set)
       if (user.email) {
+        console.log(`🔍 Searching shop_ownership by email="${user.email}" and shopSlug="${shopSlug}"`);
+        
         const byEmailQuery = query(
           ownershipRef,
           where('email', '==', user.email),
@@ -55,6 +57,8 @@ export class AuthService {
         );
 
         const emailSnapshot = await getDocs(byEmailQuery);
+        console.log(`📊 Found ${emailSnapshot.size} documents matching email+shopSlug`);
+        
         if (!emailSnapshot.empty) {
           console.log(`🔎 Found ownership by email for shop: ${shopSlug}. Will link userId to this document.`);
 
@@ -68,6 +72,20 @@ export class AuthService {
           }
 
           return true;
+        } else {
+          console.log(`❌ No documents found with email="${user.email}" and shopSlug="${shopSlug}"`);
+          
+          // Debug: Check if ANY docs exist for this email
+          const emailOnlyQuery = query(ownershipRef, where('email', '==', user.email));
+          const emailOnlySnapshot = await getDocs(emailOnlyQuery);
+          console.log(`📋 Total documents for email "${user.email}": ${emailOnlySnapshot.size}`);
+          
+          if (!emailOnlySnapshot.empty) {
+            emailOnlySnapshot.forEach(doc => {
+              const data = doc.data();
+              console.log(`  📄 Found shop: "${data['shopSlug']}" (you're trying to access: "${shopSlug}")`);
+            });
+          }
         }
       }
 
@@ -158,39 +176,6 @@ export class AuthService {
     } catch (error) {
       console.error('Error fetching user shops:', error);
       return [];
-    }
-  }
-
-  /**
-   * Initialize user data in Firestore
-   */
-  async initializeUserData(user: User): Promise<void> {
-    try {
-      const userRef = doc(this.firestore, 'users', user.uid);
-      const userDoc = await getDoc(userRef);
-
-      if (!userDoc.exists()) {
-        const userData: any = {
-          uid: user.uid,
-          email: user.email || '',
-          shopIds: [],
-          createdAt: new Date(),
-          lastLogin: new Date()
-        };
-
-        // Only add displayName if it exists (Firebase doesn't allow undefined)
-        if (user.displayName) {
-          userData.displayName = user.displayName;
-        }
-
-        await setDoc(userRef, userData);
-        console.log('✅ User data initialized');
-      } else {
-        // Update last login
-        await setDoc(userRef, { lastLogin: new Date() }, { merge: true });
-      }
-    } catch (error) {
-      console.error('⚠️ Could not initialize user data:', error);
     }
   }
 }

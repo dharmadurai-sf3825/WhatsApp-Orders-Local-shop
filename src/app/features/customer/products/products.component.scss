@@ -1,0 +1,117 @@
+
+    .products-container {
+      padding: 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .header h1 {
+      margin: 0;
+      color: var(--whatsapp-teal);
+    }
+
+    .filters {
+      margin-bottom: 20px;
+    }
+
+    .products-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 20px;
+    }
+
+    .product-card {
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .product-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+    }
+
+    .product-image {
+      height: 180px;
+      background-color: #f0f0f0;
+      background-size: cover;
+      background-position: center;
+      border-radius: 8px 8px 0 0;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .product-image:not([style*="url"]):before {
+      content: "📦";
+      font-size: 56px;
+    }
+
+    .badge {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: #f44336;
+      color: white;
+      padding: 5px 10px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    mat-card-content h3 {
+      margin: 10px 0 5px 0;
+      font-size: 1.1rem;
+      color: #333;
+    }
+
+    .category {
+      font-size: 0.85rem;
+      color: #999;
+      margin: 5px 0;
+    }
+
+    .price {
+      font-size: 1rem;
+      color: var(--whatsapp-green);
+      font-weight: 600;
+      margin: 10px 0;
+    }
+
+    mat-card-actions {
+      display: flex;
+      justify-content: space-between;
+      padding: 16px;
+    }
+
+    .no-products {
+      text-align: center;
+      padding: 40px;
+      color: #999;
+      font-size: 1.1rem;
+    }
+
+    .cart-fab {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 1000;
+    }
+
+    @media (max-width: 768px) {
+      .products-container {
+        padding: 15px;
+      }
+
+      .products-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  

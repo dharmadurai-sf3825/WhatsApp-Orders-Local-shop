@@ -1,0 +1,56 @@
+
+    <mat-toolbar color="primary" class="seller-header">
+      <div class="header-content">
+        <div class="left-section">
+          <button mat-icon-button (click)="goToDashboard()">
+            <mat-icon>dashboard</mat-icon>
+          </button>
+          <span class="shop-name" *ngIf="currentShop">{{ currentShop.name }}</span>
+        </div>
+
+        <div class="right-section">
+          <span class="user-email" *ngIf="currentUser">{{ currentUser.email }}</span>
+          
+          <button mat-icon-button [matMenuTriggerFor]="menu">
+            <mat-icon>account_circle</mat-icon>
+          </button>
+          
+          <mat-menu #menu="matMenu">
+            <button mat-menu-item (click)="goToDashboard()">
+              <mat-icon>dashboard</mat-icon>
+              <span>{{ language === 'ta' ? 'டாஷ்போர்டு' : 'Dashboard' }}</span>
+            </button>
+            
+            <button mat-menu-item (click)="goToProducts()">
+              <mat-icon>inventory_2</mat-icon>
+              <span>{{ language === 'ta' ? 'தயாரிப்புகள்' : 'Products' }}</span>
+            </button>
+            
+            <button mat-menu-item (click)="goToOrders()">
+              <mat-icon>receipt_long</mat-icon>
+              <span>{{ language === 'ta' ? 'ஆர்டர்கள்' : 'Orders' }}</span>
+            </button>
+            
+            <mat-divider></mat-divider>
+            
+            <button mat-menu-item (click)="goToCustomerSite()">
+              <mat-icon>store</mat-icon>
+              <span>{{ language === 'ta' ? 'வாடிக்கையாளர் தளம்' : 'Customer Site' }}</span>
+            </button>
+            
+            <button mat-menu-item (click)="toggleLanguage()">
+              <mat-icon>language</mat-icon>
+              <span>{{ language === 'ta' ? 'English' : 'தமிழ்' }}</span>
+            </button>
+            
+            <mat-divider></mat-divider>
+            
+            <button mat-menu-item (click)="logout()" class="logout-button">
+              <mat-icon>logout</mat-icon>
+              <span>{{ language === 'ta' ? 'வெளியேறு' : 'Logout' }}</span>
+            </button>
+          </mat-menu>
+        </div>
+      </div>
+    </mat-toolbar>
+  

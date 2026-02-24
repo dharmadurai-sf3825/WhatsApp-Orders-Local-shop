@@ -1,0 +1,22 @@
+
+    <mat-toolbar color="primary" class="app-toolbar">
+      <span>{{ shopName || (currentLang === 'ta' ? 'வாட்ஸ்அப் ஆர்டர்' : 'WhatsApp Order') }}</span>
+      <span class="spacer"></span>
+      <button mat-icon-button [matMenuTriggerFor]="langMenu">
+        <mat-icon>language</mat-icon>
+      </button>
+      <mat-menu #langMenu="matMenu">
+        <button mat-menu-item (click)="switchLanguage('ta')">
+          <mat-icon>{{ currentLang === 'ta' ? 'check' : '' }}</mat-icon>
+          தமிழ் (Tamil)
+        </button>
+        <button mat-menu-item (click)="switchLanguage('en')">
+          <mat-icon>{{ currentLang === 'en' ? 'check' : '' }}</mat-icon>
+          English
+        </button>
+      </mat-menu>
+    </mat-toolbar>
+    <main class="app-content">
+      <router-outlet></router-outlet>
+    </main>
+  

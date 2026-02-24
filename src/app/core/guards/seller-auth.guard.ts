@@ -12,8 +12,14 @@ export const sellerAuthGuard: CanActivateFn = (route, state) => {
 
   console.log('🔐 Seller Auth Guard: Checking access...');
 
-  // Get current shop from route
-  const shopSlug = route.parent?.paramMap.get('shopSlug') || '';
+  // Get shop slug from current route params (now /seller/:shopSlug/dashboard)
+  const shopSlug = route.paramMap.get('shopSlug') || '';
+  
+  if (!shopSlug) {
+    console.log('❌ No shop slug in route');
+    router.navigate(['/seller/login']);
+    return of(false);
+  }
   
   return authState(auth).pipe(
     take(1),
@@ -28,7 +34,7 @@ export const sellerAuthGuard: CanActivateFn = (route, state) => {
         
         // Store the intended URL to redirect back after login
         const returnUrl = state.url;
-        router.navigate([shopSlug, 'seller', 'login'], { 
+        router.navigate(['/seller/login'], { 
           queryParams: { returnUrl } 
         });
         return of(false);

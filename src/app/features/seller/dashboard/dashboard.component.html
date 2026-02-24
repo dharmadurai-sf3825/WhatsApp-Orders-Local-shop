@@ -1,0 +1,86 @@
+
+    <app-seller-header></app-seller-header>
+    
+    <div class="dashboard-container">
+      <div class="header">
+        <h1>{{ language === 'ta' ? 'விற்பனையாளர் கட்டுப்பாடு' : 'Seller Dashboard' }}</h1>
+      </div>
+
+      <div class="dashboard-grid">
+        <!-- Products Management -->
+        <mat-card class="dashboard-card" (click)="navigateTo('/seller/products')">
+          <mat-icon class="card-icon">inventory_2</mat-icon>
+          <h2>{{ language === 'ta' ? 'பொருட்கள் நிர்வாகம்' : 'Products Management' }}</h2>
+          <p>{{ language === 'ta' ? 'பொருட்களை சேர், திருத்து மற்றும் நிர்வகி' : 'Add, edit and manage products' }}</p>
+        </mat-card>
+
+        <!-- Orders Management -->
+        <mat-card class="dashboard-card" (click)="navigateTo('/seller/orders')">
+          <mat-icon class="card-icon">shopping_bag</mat-icon>
+          <h2>{{ language === 'ta' ? 'ஆர்டர்கள் நிர்வாகம்' : 'Orders Management' }}</h2>
+          <p>{{ language === 'ta' ? 'ஆர்டர்களைப் பார்க்கவும் மற்றும் நிர்வகிக்கவும்' : 'View and manage orders' }}</p>
+        </mat-card>
+
+        <!-- Payment Links -->
+        <mat-card class="dashboard-card">
+          <mat-icon class="card-icon">payment</mat-icon>
+          <h2>{{ language === 'ta' ? 'கட்டண இணைப்புகள்' : 'Payment Links' }}</h2>
+          <p>{{ language === 'ta' ? 'Razorpay கட்டண இணைப்புகளை உருவாக்கவும்' : 'Create Razorpay payment links' }}</p>
+        </mat-card>
+
+        <!-- Shop Settings -->
+        <mat-card class="dashboard-card">
+          <mat-icon class="card-icon">store</mat-icon>
+          <h2>{{ language === 'ta' ? 'கடை அமைப்புகள்' : 'Shop Settings' }}</h2>
+          <p>{{ language === 'ta' ? 'உங்கள் கடை விவரங்களை நிர்வகிக்கவும்' : 'Manage your shop details' }}</p>
+        </mat-card>
+
+        <!-- Reports -->
+        <mat-card class="dashboard-card">
+          <mat-icon class="card-icon">analytics</mat-icon>
+          <h2>{{ language === 'ta' ? 'அறிக்கைகள்' : 'Reports' }}</h2>
+          <p>{{ language === 'ta' ? 'விற்பனை மற்றும் வருவாய் அறிக்கைகள்' : 'Sales and revenue reports' }}</p>
+        </mat-card>
+
+        <!-- Help -->
+        <mat-card class="dashboard-card">
+          <mat-icon class="card-icon">help</mat-icon>
+          <h2>{{ language === 'ta' ? 'உதவி மற்றும் ஆதரவு' : 'Help & Support' }}</h2>
+          <p>{{ language === 'ta' ? 'வழிகாட்டிகள் மற்றும் ஆதரவு' : 'Guides and support' }}</p>
+        </mat-card>
+      </div>
+
+      <!-- Quick Stats -->
+      <div class="stats-container">
+        <mat-card class="stat-card">
+          <div class="stat-icon">
+            <mat-icon>shopping_cart</mat-icon>
+          </div>
+          <div class="stat-info">
+            <h3>{{ language === 'ta' ? 'இன்றைய ஆர்டர்கள்' : "Today's Orders" }}</h3>
+            <p class="stat-value">0</p>
+          </div>
+        </mat-card>
+
+        <mat-card class="stat-card">
+          <div class="stat-icon">
+            <mat-icon>currency_rupee</mat-icon>
+          </div>
+          <div class="stat-info">
+            <h3>{{ language === 'ta' ? 'இன்றைய வருவாய்' : "Today's Revenue" }}</h3>
+            <p class="stat-value">₹0</p>
+          </div>
+        </mat-card>
+
+        <mat-card class="stat-card">
+          <div class="stat-icon">
+            <mat-icon>inventory</mat-icon>
+          </div>
+          <div class="stat-info">
+            <h3>{{ language === 'ta' ? 'மொத்த பொருட்கள்' : 'Total Products' }}</h3>
+            <p class="stat-value">0</p>
+          </div>
+        </mat-card>
+      </div>
+    </div>
+  

@@ -1,0 +1,77 @@
+
+    <div class="product-details-container" *ngIf="product">
+      <div class="header">
+        <button mat-icon-button (click)="goBack()">
+          <mat-icon>arrow_back</mat-icon>
+        </button>
+        <h1>{{ language === 'ta' ? 'பொருள் விவரங்கள்' : 'Product Details' }}</h1>
+      </div>
+
+      <mat-card class="product-card">
+        <div class="product-image" 
+             [style.background-image]="product.imageUrl ? 'url(' + product.imageUrl + ')' : 'none'">
+          <span class="badge out-of-stock" *ngIf="!product.inStock">
+            {{ language === 'ta' ? 'கையிருப்பு இல்லை' : 'Out of Stock' }}
+          </span>
+          <span class="badge in-stock" *ngIf="product.inStock">
+            {{ language === 'ta' ? 'கையிருப்பில் உள்ளது' : 'In Stock' }}
+          </span>
+        </div>
+
+        <mat-card-content>
+          <div class="product-info">
+            <h2>{{ language === 'ta' && product.nameTA ? product.nameTA : product.name }}</h2>
+            <p class="category">
+              {{ language === 'ta' && product.categoryTA ? product.categoryTA : product.category }}
+            </p>
+            <p class="price">₹{{ product.price }} / {{ language === 'ta' && product.unitTA ? product.unitTA : product.unit }}</p>
+            
+            <p class="description" *ngIf="product.description || product.descriptionTA">
+              {{ language === 'ta' && product.descriptionTA ? product.descriptionTA : product.description }}
+            </p>
+
+            <!-- Quantity Selector -->
+            <div class="quantity-selector">
+              <label>{{ language === 'ta' ? 'அளவு' : 'Quantity' }}:</label>
+              <div class="quantity-controls">
+                <button mat-icon-button (click)="decrementQuantity()" [disabled]="quantity <= 1">
+                  <mat-icon>remove</mat-icon>
+                </button>
+                <span class="quantity-display">{{ quantity }}</span>
+                <button mat-icon-button (click)="incrementQuantity()">
+                  <mat-icon>add</mat-icon>
+                </button>
+              </div>
+            </div>
+
+            <p class="subtotal">
+              {{ language === 'ta' ? 'மொத்தம்' : 'Subtotal' }}: 
+              <strong>₹{{ product.price * quantity }}</strong>
+            </p>
+          </div>
+        </mat-card-content>
+
+        <mat-card-actions>
+          <button mat-raised-button 
+                  color="primary" 
+                  class="add-to-cart-btn"
+                  [disabled]="!product.inStock"
+                  (click)="addToCart()">
+            <mat-icon>add_shopping_cart</mat-icon>
+            {{ language === 'ta' ? 'கூடையில் சேர்' : 'Add to Cart' }}
+          </button>
+        </mat-card-actions>
+      </mat-card>
+
+      <!-- Cart FAB -->
+      <button mat-fab class="cart-fab whatsapp-btn" 
+              *ngIf="cartCount > 0"
+              (click)="navigateToCart()">
+        <mat-icon [matBadge]="cartCount" matBadgeColor="warn">shopping_cart</mat-icon>
+      </button>
+    </div>
+
+    <div class="loading-container" *ngIf="!product">
+      <p>{{ language === 'ta' ? 'ஏற்றுகிறது...' : 'Loading...' }}</p>
+    </div>
+  

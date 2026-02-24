@@ -94,15 +94,55 @@ export class FirebaseService {
 
   // Shop Methods
   getShopById(shopId: string): Observable<Shop | null> {
-    // TODO: Implement Firestore query
     console.log('Firebase: Getting shop by ID', shopId);
-    return of(this.getMockShop());
+    if (!this.useFirestore || !this.firestore) {
+      console.warn('Firestore not configured - getShopById returning null');
+      return of(null);
+    }
+
+    try {
+      const d = doc(this.firestore, 'shops', shopId);
+      return from(getDoc(d)).pipe(
+        map(snap => {
+          if (!snap.exists()) return null;
+          return { id: snap.id, ...(snap.data() as any) } as Shop;
+        }),
+        catchError(err => {
+          console.error('❌ FIRESTORE getShopById error:', err);
+          return of(null);
+        })
+      );
+    } catch (err) {
+      console.error('❌ getShopById unexpected error:', err);
+      return of(null);
+    }
   }
 
   getShopBySlug(slug: string): Observable<Shop | null> {
-    // TODO: Implement Firestore query where slug == slug
     console.log('Firebase: Getting shop by slug', slug);
-    return of(this.getMockShopBySlug(slug));
+    if (!this.useFirestore || !this.firestore) {
+      console.warn('Firestore not configured - getShopBySlug returning null');
+      return of(null);
+    }
+
+    try {
+      const col = collection(this.firestore, 'shops');
+      const q = query(col, where('slug', '==', slug));
+      return from(getDocs(q)).pipe(
+        map(snapshot => {
+          if (snapshot.empty) return null;
+          const d = snapshot.docs[0];
+          return { id: d.id, ...(d.data() as any) } as Shop;
+        }),
+        catchError(err => {
+          console.error('❌ FIRESTORE getShopBySlug error:', err);
+          return of(null);
+        })
+      );
+    } catch (err) {
+      console.error('❌ getShopBySlug unexpected error:', err);
+      return of(null);
+    }
   }
 
   updateShop(shopId: string, shop: Partial<Shop>): Observable<void> {
@@ -330,13 +370,13 @@ export class FirebaseService {
   private getMockShop(): Shop {
     return {
       id: 'shop-1',
-      slug: 'demo-shop',
+      slug: 'ganesh-bakery',
       name: 'Sri Ganesh Bakery',
       phoneE164: '918220762702',
       address: 'Main Street, Kurinjipadi, Tamil Nadu - 607302',
       gstNo: '33AAAAA0000A1Z5',
       upiId: 'sriganesh@paytm',
-      razorpayKeyId: 'rzp_test_demo',
+      razorpayKeyId: 'rzp_test_ganesh',
       theme: {
         primaryColor: '#FF6B6B',
         logoUrl: ''
@@ -346,23 +386,8 @@ export class FirebaseService {
   }
 
   private getMockShopBySlug(slug: string): Shop | null {
-    // Mock multiple shops for demonstration
+    // Mock multiple shops for testing
     const shops: { [key: string]: Shop } = {
-      'demo-shop': {
-        id: 'shop-demo',
-        slug: 'demo-shop',
-        name: 'Demo Shop',
-        phoneE164: '918220762702',
-        address: 'Main Street, Kurinjipadi, Tamil Nadu - 607302',
-        gstNo: '33AAAAA0000A1Z5',
-        upiId: 'demo@paytm',
-        razorpayKeyId: 'rzp_test_demo',
-        theme: {
-          primaryColor: '#FF6B6B',
-          logoUrl: ''
-        },
-        isActive: true
-      },
       'ganesh-bakery': {
         id: 'shop-ganesh',
         slug: 'ganesh-bakery',

@@ -8,21 +8,22 @@ export const SELLER_ROUTES: Routes = [
   },
   {
     path: '',
-    redirectTo: 'dashboard',
+    redirectTo: 'login',
     pathMatch: 'full'
   },
+  // Shop-specific seller routes with :shopSlug parameter
   {
-    path: 'dashboard',
+    path: ':shopSlug/dashboard',
     loadComponent: () => import('./dashboard/dashboard.component').then(m => m.DashboardComponent),
     canActivate: [sellerAuthGuard]
   },
   {
-    path: 'products',
+    path: ':shopSlug/products',
     loadComponent: () => import('./products-management/products-management.component').then(m => m.ProductsManagementComponent),
     canActivate: [sellerAuthGuard]
   },
   {
-    path: 'orders',
+    path: ':shopSlug/orders',
     loadComponent: () => import('./orders-management/orders-management.component').then(m => m.OrdersManagementComponent),
     canActivate: [sellerAuthGuard]
   }

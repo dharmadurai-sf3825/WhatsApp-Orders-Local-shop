@@ -20,51 +20,8 @@ import { Shop } from './core/models/shop.model';
     MatIconModule,
     MatMenuModule
   ],
-  template: `
-    <mat-toolbar color="primary" class="app-toolbar">
-      <span>{{ shopName || (currentLang === 'ta' ? 'வாட்ஸ்அப் ஆர்டர்' : 'WhatsApp Order') }}</span>
-      <span class="spacer"></span>
-      <button mat-icon-button [matMenuTriggerFor]="langMenu">
-        <mat-icon>language</mat-icon>
-      </button>
-      <mat-menu #langMenu="matMenu">
-        <button mat-menu-item (click)="switchLanguage('ta')">
-          <mat-icon>{{ currentLang === 'ta' ? 'check' : '' }}</mat-icon>
-          தமிழ் (Tamil)
-        </button>
-        <button mat-menu-item (click)="switchLanguage('en')">
-          <mat-icon>{{ currentLang === 'en' ? 'check' : '' }}</mat-icon>
-          English
-        </button>
-      </mat-menu>
-    </mat-toolbar>
-    <main class="app-content">
-      <router-outlet></router-outlet>
-    </main>
-  `,
-  styles: [`
-    .app-toolbar {
-      position: sticky;
-      top: 0;
-      z-index: 1000;
-      background-color: var(--whatsapp-green);
-    }
-    
-    .spacer {
-      flex: 1 1 auto;
-    }
-    
-    .app-content {
-      min-height: calc(100vh - 64px);
-      padding-bottom: 20px;
-    }
-    
-    @media (max-width: 768px) {
-      .app-content {
-        min-height: calc(100vh - 56px);
-      }
-    }
-  `]
+  templateUrl: './app.component.html',
+  styleUrl: './app.component.scss'
 })
 export class AppComponent implements OnInit {
   currentLang = 'ta';
@@ -98,3 +55,4 @@ export class AppComponent implements OnInit {
     this.languageService.setLanguage(lang);
   }
 }
+

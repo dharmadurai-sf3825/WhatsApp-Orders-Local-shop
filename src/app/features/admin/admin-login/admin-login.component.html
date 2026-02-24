@@ -1,0 +1,59 @@
+
+    <div class="admin-login-container">
+      <mat-card class="login-card">
+        <mat-card-header>
+          <div class="header-content">
+            <mat-icon class="admin-icon">admin_panel_settings</mat-icon>
+            <h1>Admin Login</h1>
+            <p>Project Owner Access</p>
+          </div>
+        </mat-card-header>
+
+        <mat-card-content>
+          <div class="form-container">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Admin Email</mat-label>
+              <input matInput type="email" [(ngModel)]="email" [disabled]="loading" required>
+              <mat-icon matPrefix>email</mat-icon>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Password</mat-label>
+              <input matInput [type]="hidePassword ? 'password' : 'text'" 
+                     [(ngModel)]="password" [disabled]="loading" required>
+              <mat-icon matPrefix>lock</mat-icon>
+              <button mat-icon-button matSuffix (click)="hidePassword = !hidePassword" type="button">
+                <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+              </button>
+            </mat-form-field>
+
+            <div class="error-message" *ngIf="errorMessage">
+              <mat-icon>error</mat-icon>
+              <span>{{ errorMessage }}</span>
+            </div>
+          </div>
+        </mat-card-content>
+
+        <mat-card-actions>
+          <button mat-raised-button color="primary" 
+                  (click)="login()" 
+                  [disabled]="loading || !email || !password"
+                  class="full-width">
+            <mat-spinner *ngIf="loading" diameter="20"></mat-spinner>
+            <span *ngIf="!loading">Login as Admin</span>
+          </button>
+
+          <button mat-button (click)="goToHome()" [disabled]="loading" class="full-width">
+            Back to Home
+          </button>
+        </mat-card-actions>
+      </mat-card>
+
+      <mat-card class="info-card">
+        <mat-icon class="warning-icon">warning</mat-icon>
+        <h3>Restricted Access</h3>
+        <p>This area is only for project owners and administrators.</p>
+        <p>Unauthorized access attempts are logged.</p>
+      </mat-card>
+    </div>
+  

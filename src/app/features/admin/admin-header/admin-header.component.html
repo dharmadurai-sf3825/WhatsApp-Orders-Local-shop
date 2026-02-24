@@ -1,0 +1,52 @@
+<mat-toolbar class="admin-header">
+  <div class="header-content">
+    <div class="left-section">
+      <mat-icon class="admin-icon">admin_panel_settings</mat-icon>
+      <span class="title">Admin Panel</span>
+      <span class="divider">|</span>
+      <span class="subtitle">Project Owner</span>
+    </div>
+
+    <div class="right-section">
+      <!-- Desktop Navigation -->
+      <div class="desktop-nav">
+        <button mat-button (click)="goToSellers()" class="nav-button">
+          <mat-icon>people</mat-icon>
+          <span>Sellers</span>
+        </button>
+
+        <button mat-button (click)="goToHome()" class="nav-button">
+          <mat-icon>home</mat-icon>
+          <span>Home</span>
+        </button>
+
+        <button mat-raised-button color="warn" (click)="logout()" class="logout-button">
+          <mat-icon>logout</mat-icon>
+          <span>Logout</span>
+        </button>
+      </div>
+
+      <!-- Mobile Menu -->
+      <div class="mobile-nav">
+        <button mat-icon-button [matMenuTriggerFor]="menu" class="menu-button">
+          <mat-icon>more_vert</mat-icon>
+        </button>
+        <mat-menu #menu="matMenu">
+          <button mat-menu-item (click)="goToSellers()">
+            <mat-icon>people</mat-icon>
+            <span>Manage Sellers</span>
+          </button>
+          <button mat-menu-item (click)="goToHome()">
+            <mat-icon>home</mat-icon>
+            <span>Go to Home</span>
+          </button>
+          <mat-divider></mat-divider>
+          <button mat-menu-item (click)="logout()" class="logout-menu-item">
+            <mat-icon color="warn">logout</mat-icon>
+            <span>Logout</span>
+          </button>
+        </mat-menu>
+      </div>
+    </div>
+  </div>
+</mat-toolbar>
