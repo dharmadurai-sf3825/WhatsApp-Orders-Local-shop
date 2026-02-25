@@ -178,4 +178,42 @@ export class AuthService {
       return [];
     }
   }
+
+  /**
+   * Check if current user is an admin
+   */
+  async isAdmin(): Promise<boolean> {
+    const user = this.auth.currentUser;
+    if (!user || !user.email) {
+      console.log('❌ No authenticated user');
+      return false;
+    }
+
+    try {
+      console.log(`🔍 Checking if user ${user.email} is admin`);
+
+      // Check admin collection by email
+      const adminRef = doc(this.firestore, 'admin', user.email);
+      const adminSnap = await getDoc(adminRef);
+
+      if (adminSnap.exists()) {
+        console.log('✅ User is admin');
+        return true;
+      }
+
+      console.log('❌ User is NOT admin');
+      return false;
+    } catch (error) {
+      console.error('Error checking admin status:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Get the first shop slug for the current user (for seller redirect)
+   */
+  async getFirstUserShop(): Promise<string | null> {
+    const shops = await this.getUserShops();
+    return shops.length > 0 ? shops[0] : null;
+  }
 }

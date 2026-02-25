@@ -1,6 +1,12 @@
 import { Routes } from '@angular/router';
 
 export const routes: Routes = [
+  // Landing/Shop selection page (for non-logged-in users)
+  {
+    path: 'landing',
+    loadComponent: () => import('./features/home/landing.component').then(m => m.LandingComponent)
+  },
+
   // Error page
   {
     path: 'error',
@@ -53,10 +59,13 @@ export const routes: Routes = [
     ]
   },
   
-  // Default route - redirect to seller login
+  // Smart root: redirects based on user status
+  // - Not logged in → landing page (shop selection)
+  // - Logged in as seller → seller dashboard
+  // - Logged in as admin → admin sellers management
   {
     path: '',
-    redirectTo: '/seller/login',
+    loadComponent: () => import('./features/home/smart-root.component').then(m => m.SmartRootComponent),
     pathMatch: 'full'
   },
   

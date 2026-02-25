@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
@@ -12,10 +12,12 @@ import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { MatTableModule } from '@angular/material/table';
 import { FirebaseService } from '../../../core/services/firebase.service';
 import { LanguageService } from '../../../core/services/language.service';
-import { ShopService } from '../../../core/services/shop.service';
+import { GlobalStateService } from '../../../core/services/global-state.service';
 import { SellerHeaderComponent } from '../components/seller-header.component';
 import { Product } from '../../../core/models/product.model';
 import { Shop } from '../../../core/models/shop.model';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'app-products-management',
@@ -36,7 +38,7 @@ import { Shop } from '../../../core/models/shop.model';
   templateUrl: './products-management.component.html',
   styleUrl: './products-management.component.scss'
 })
-export class ProductsManagementComponent implements OnInit {
+export class ProductsManagementComponent implements OnInit, OnDestroy {
   products: Product[] = [];
   showForm = false;
   editingProduct: Product | null = null;
@@ -59,40 +61,59 @@ export class ProductsManagementComponent implements OnInit {
     shopId: ''
   };
 
+  private destroy$ = new Subject<void>();
+
   constructor(
     private firebaseService: FirebaseService,
     private languageService: LanguageService,
-    private shopService: ShopService,
+    private globalStateService: GlobalStateService,
     private router: Router,
     private route: ActivatedRoute
   ) {}
 
   ngOnInit() {
     this.language = this.languageService.getCurrentLanguage();
-    this.languageService.language$.subscribe(lang => {
-      this.language = lang;
-    });
+    this.languageService.language$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(lang => {
+        this.language = lang;
+      });
 
-    // Get shop slug from route params and initialize shop
-    this.route.paramMap.subscribe(params => {
-      const shopSlug = params.get('shopSlug');
-      console.log('Products Management - Shop Slug from route:', shopSlug);
-      
-      if (shopSlug) {
-        // Initialize shop with the slug from URL
-        this.shopService.initializeShop(shopSlug);
-      }
-    });
+    // Get shop slug from route params and load from global state if needed
+    this.route.paramMap
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(async params => {
+        const shopSlug = params.get('shopSlug');
+        console.log('📦 Products Management - Route shopSlug:', shopSlug);
+        
+        const currentGlobalShop = this.globalStateService.getCurrentShop();
+        if (!currentGlobalShop || currentGlobalShop.slug !== shopSlug) {
+          if (shopSlug) {
+            try {
+              await this.globalStateService.loadShop(shopSlug);
+            } catch (error) {
+              console.error('❌ Failed to load shop:', error);
+            }
+          }
+        }
+      });
 
-    // Subscribe to shop changes
-    this.shopService.currentShop$.subscribe(shop => {
-      console.log('Products Management - Current shop updated:', shop);
-      this.currentShop = shop;
-      if (shop) {
-        this.productForm.shopId = shop.id;
-        this.loadProducts();
-      }
-    });
+    // Subscribe to global shop state
+    this.globalStateService.currentShop$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(shop => {
+        console.log('📦 Products Management - Global shop updated:', shop?.name);
+        this.currentShop = shop;
+        if (shop) {
+          this.productForm.shopId = shop.id;
+          this.loadProducts();
+        }
+      });
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   loadProducts() {

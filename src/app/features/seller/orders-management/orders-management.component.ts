@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
@@ -11,10 +11,12 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { FirebaseService } from '../../../core/services/firebase.service';
 import { RazorpayService } from '../../../core/services/razorpay.service';
 import { LanguageService } from '../../../core/services/language.service';
-import { ShopService } from '../../../core/services/shop.service';
+import { GlobalStateService } from '../../../core/services/global-state.service';
 import { SellerHeaderComponent } from '../components/seller-header.component';
 import { Order, OrderStatus, PaymentStatus } from '../../../core/models/order.model';
 import { Shop } from '../../../core/models/shop.model';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'app-orders-management',
@@ -33,45 +35,64 @@ import { Shop } from '../../../core/models/shop.model';
   templateUrl: './orders-management.component.html',
   styleUrl: './orders-management.component.scss'
 })
-export class OrdersManagementComponent implements OnInit {
+export class OrdersManagementComponent implements OnInit, OnDestroy {
   orders: Order[] = [];
   language = 'ta';
   currentShop: Shop | null = null;
+
+  private destroy$ = new Subject<void>();
 
   constructor(
     private firebaseService: FirebaseService,
     private razorpayService: RazorpayService,
     private languageService: LanguageService,
-    private shopService: ShopService,
+    private globalStateService: GlobalStateService,
     private router: Router,
     private route: ActivatedRoute
   ) {}
 
   ngOnInit() {
     this.language = this.languageService.getCurrentLanguage();
-    this.languageService.language$.subscribe(lang => {
-      this.language = lang;
-    });
+    this.languageService.language$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(lang => {
+        this.language = lang;
+      });
 
-    // Get shop slug from route params and initialize shop
-    this.route.paramMap.subscribe(params => {
-      const shopSlug = params.get('shopSlug');
-      console.log('Orders Management - Shop Slug from route:', shopSlug);
-      
-      if (shopSlug) {
-        // Initialize shop with the slug from URL
-        this.shopService.initializeShop(shopSlug);
-      }
-    });
+    // Get shop slug from route params and load from global state if needed
+    this.route.paramMap
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(async params => {
+        const shopSlug = params.get('shopSlug');
+        console.log('📋 Orders Management - Route shopSlug:', shopSlug);
+        
+        const currentGlobalShop = this.globalStateService.getCurrentShop();
+        if (!currentGlobalShop || currentGlobalShop.slug !== shopSlug) {
+          if (shopSlug) {
+            try {
+              await this.globalStateService.loadShop(shopSlug);
+            } catch (error) {
+              console.error('❌ Failed to load shop:', error);
+            }
+          }
+        }
+      });
 
-    // Subscribe to shop changes
-    this.shopService.currentShop$.subscribe(shop => {
-      console.log('Orders Management - Current shop updated:', shop);
-      this.currentShop = shop;
-      if (shop) {
-        this.loadOrders();
-      }
-    });
+    // Subscribe to global shop state
+    this.globalStateService.currentShop$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(shop => {
+        console.log('📋 Orders Management - Global shop updated:', shop?.name);
+        this.currentShop = shop;
+        if (shop) {
+          this.loadOrders();
+        }
+      });
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   loadOrders() {
@@ -199,12 +220,11 @@ export class OrdersManagementComponent implements OnInit {
   }
 
   goBack() {
-    if (this.currentShop) {
-      // Navigate within shop context
-      this.router.navigate([this.currentShop.slug, 'seller', 'dashboard']);
+    const shopSlug = this.currentShop?.slug || this.route.snapshot.paramMap.get('shopSlug');
+    if (shopSlug) {
+      this.router.navigate(['/seller', shopSlug, 'dashboard']);
     } else {
-      // Fallback to global seller route
-      this.router.navigate(['/seller/dashboard']);
+      this.router.navigate(['/seller/login']);
     }
   }
 }

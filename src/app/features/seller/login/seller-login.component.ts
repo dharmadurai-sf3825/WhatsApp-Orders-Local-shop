@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
@@ -8,11 +8,12 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { Auth, signInWithEmailAndPassword, createUserWithEmailAndPassword } from '@angular/fire/auth';
-import { ShopService } from '../../../core/services/shop.service';
+import { Auth, signInWithEmailAndPassword } from '@angular/fire/auth';
 import { LanguageService } from '../../../core/services/language.service';
-import { AuthService } from '../../../core/services/auth.service';
+import { GlobalStateService } from '../../../core/services/global-state.service';
 import { Shop } from '../../../core/models/shop.model';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'app-seller-login',
@@ -30,7 +31,7 @@ import { Shop } from '../../../core/models/shop.model';
   templateUrl: './seller-login.component.html',
   styleUrl: './seller-login.component.scss'
 })
-export class SellerLoginComponent implements OnInit {
+export class SellerLoginComponent implements OnInit, OnDestroy {
   email = '';
   password = '';
   hidePassword = true;
@@ -40,29 +41,42 @@ export class SellerLoginComponent implements OnInit {
   currentShop: Shop | null = null;
   returnUrl = '';
 
+  private destroy$ = new Subject<void>();
+
   constructor(
     private auth: Auth,
-    private authService: AuthService,
     private router: Router,
     private route: ActivatedRoute,
-    private shopService: ShopService,
-    private languageService: LanguageService
+    private languageService: LanguageService,
+    private globalStateService: GlobalStateService
   ) {}
 
   ngOnInit() {
-    this.language = this.languageService.getCurrentLanguage();
-    this.languageService.language$.subscribe(lang => {
-      this.language = lang;
-    });
+    // Subscribe to language changes
+    this.languageService.language$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(lang => {
+        this.language = lang;
+      });
 
-    this.shopService.currentShop$.subscribe(shop => {
-      this.currentShop = shop;
-    });
+    // Subscribe to global shop state (may be set from customer flow)
+    this.globalStateService.currentShop$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(shop => {
+        this.currentShop = shop;
+      });
 
     // Get return URL from query params
-    this.route.queryParams.subscribe(params => {
-      this.returnUrl = params['returnUrl'] || '';
-    });
+    this.route.queryParams
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(params => {
+        this.returnUrl = params['returnUrl'] || '';
+      });
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   async login() {
@@ -80,8 +94,11 @@ export class SellerLoginComponent implements OnInit {
 
       console.log('✅ Login successful:', userCredential.user.uid);
 
-      // Get user's shops from shop_ownership
-      const userShops = await this.authService.getUserShops();
+      // Initialize global user state
+      await this.globalStateService.initializeUserState();
+
+      // Get user's shops
+      const userShops = await this.globalStateService.loadUserShops();
       
       if (userShops.length === 0) {
         console.log('❌ User has no shops assigned');
@@ -91,6 +108,7 @@ export class SellerLoginComponent implements OnInit {
         
         // Sign out the user
         await this.auth.signOut();
+        this.globalStateService.clearState();
         this.loading = false;
         return;
       }
@@ -98,6 +116,9 @@ export class SellerLoginComponent implements OnInit {
       // Use first shop (for multi-shop support in future, show shop selector)
       const shopSlug = userShops[0];
       console.log(`✅ User has access to shop: ${shopSlug}`);
+
+      // Load shop into global state
+      await this.globalStateService.loadShop(shopSlug);
 
       // Redirect to seller dashboard with shop slug
       const redirectUrl = this.returnUrl || `/seller/${shopSlug}/dashboard`;
@@ -107,6 +128,7 @@ export class SellerLoginComponent implements OnInit {
 
     } catch (error: any) {
       console.error('❌ Login error:', error);
+      this.globalStateService.clearState();
       
       // Handle specific error codes
       switch (error.code) {
@@ -146,4 +168,5 @@ export class SellerLoginComponent implements OnInit {
     }
   }
 }
+
 

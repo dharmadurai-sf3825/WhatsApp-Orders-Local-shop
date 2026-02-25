@@ -11,6 +11,12 @@ export const SELLER_ROUTES: Routes = [
     redirectTo: 'login',
     pathMatch: 'full'
   },
+  // Redirect incomplete seller URLs to dashboard
+  {
+    path: ':shopSlug',
+    redirectTo: ':shopSlug/dashboard',
+    pathMatch: 'full'
+  },
   // Shop-specific seller routes with :shopSlug parameter
   {
     path: ':shopSlug/dashboard',

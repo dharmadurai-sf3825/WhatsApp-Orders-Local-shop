@@ -119,23 +119,91 @@ export class FirebaseService {
   }
 
   getShopBySlug(slug: string): Observable<Shop | null> {
-    console.log('Firebase: Getting shop by slug', slug);
+    const trimmedSlug = slug.trim().toLowerCase();
+    console.log('🔍 Firebase: Getting shop by slug:', { 
+      originalSlug: slug, 
+      trimmedSlug: trimmedSlug,
+      firestoreEnabled: this.useFirestore && !!this.firestore 
+    });
+
     if (!this.useFirestore || !this.firestore) {
-      console.warn('Firestore not configured - getShopBySlug returning null');
-      return of(null);
+      console.warn('⚠️ Firestore not configured - falling back to mock data');
+      const mockShop = this.getMockShopBySlug(trimmedSlug);
+      return of(mockShop);
     }
 
     try {
-      const col = collection(this.firestore, 'shops');
-      const q = query(col, where('slug', '==', slug));
+      const col = collection(this.firestore, 'shop_ownership');
+      const q = query(col, where('shopSlug', '==', trimmedSlug));
+      
+      console.log('📋 Query Details:', { 
+        collection: 'shop_ownership', 
+        field: 'shopSlug', 
+        operator: '==', 
+        value: trimmedSlug 
+      });
+
       return from(getDocs(q)).pipe(
         map(snapshot => {
-          if (snapshot.empty) return null;
+          const docList = snapshot.docs.map(d => ({ 
+            id: d.id, 
+            shopSlug: (d.data() as any)['shopSlug'],
+            shopName: (d.data() as any)['shopName'] 
+          }));
+
+          console.log('📊 Query Results:', { 
+            isEmpty: snapshot.empty, 
+            documentCount: snapshot.docs.length,
+            foundDocs: docList
+          });
+
+          if (snapshot.empty) {
+            console.warn(`⚠️ No shop found with slug: "${trimmedSlug}"`);
+            return null;
+          }
+
           const d = snapshot.docs[0];
-          return { id: d.id, ...(d.data() as any) } as Shop;
+          const data = d.data() as any;
+          
+          console.log('📄 Raw Firestore Data:', data);
+          // Map Firestore fields to Shop model
+          const shop: Shop = {
+            id: data.userId || d.id,
+            slug: data.shopSlug || trimmedSlug,
+            name: data.shopName || '',
+            phoneE164: data.phoneE164 || '',
+            address: data.address || '',
+            ownerId: data.userId,
+            gstNo: data.gstNo,
+            upiId: data.upiId,
+            razorpayKeyId: data.razorpayKeyId,
+            theme: data.theme,
+            createdAt: data.createdAt?.toDate?.() || data.createdAt,
+            updatedAt: data.updatedAt?.toDate?.() || data.updatedAt,
+            isActive: data.status === 'active' || data.isActive === true
+          };
+          
+          console.log('✅ Shop mapped successfully:', { 
+            id: shop.id, 
+            slug: shop.slug, 
+            name: shop.name,
+            isActive: shop.isActive
+          });
+          return shop;
         }),
         catchError(err => {
           console.error('❌ FIRESTORE getShopBySlug error:', err);
+          console.log('📋 Error Details:', {
+            code: (err as any).code,
+            message: (err as any).message,
+            slug: trimmedSlug
+          });
+          // Try mock data as fallback
+          const mockShop = this.getMockShopBySlug(trimmedSlug);
+          if (mockShop) {
+            console.log('💾 Using mock data as fallback');
+            return of(mockShop);
+          }
           return of(null);
         })
       );

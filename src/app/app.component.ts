@@ -40,14 +40,21 @@ export class AppComponent implements OnInit {
       this.currentLang = lang;
     });
 
-    // Subscribe to current shop changes
-    // Note: ShopService automatically initializes on route changes
+    // Subscribe to current shop changes for customer routes
+    // 
+    // NOTE: Role Separation
+    // ✅ Customer routes (/:shopSlug/*): ShopService provides shop via currentShop$
+    // ✅ Seller routes (/seller/*): GlobalStateService provides shop via currentShop$
+    // ✅ Admin routes (/admin/*): No shop context needed
+    // 
+    // ShopService is OPTIMIZED to only initialize for customer routes
+    // Seller/admin routes skip ShopService entirely (filter in constructor)
     this.shopService.currentShop$.subscribe(shop => {
       this.currentShop = shop;
       this.shopName = shop?.name || null;
     });
     
-    // Trigger initial shop load
+    // Trigger initial shop load (for customer routes)
     this.shopService.initializeShop();
   }
 

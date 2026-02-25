@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { MatToolbarModule } from '@angular/material/toolbar';
@@ -8,8 +8,10 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatDividerModule } from '@angular/material/divider';
 import { Auth, signOut, User } from '@angular/fire/auth';
 import { LanguageService } from '../../../core/services/language.service';
-import { ShopService } from '../../../core/services/shop.service';
+import { GlobalStateService } from '../../../core/services/global-state.service';
 import { Shop } from '../../../core/models/shop.model';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'app-seller-header',
@@ -25,31 +27,46 @@ import { Shop } from '../../../core/models/shop.model';
   templateUrl: './seller-header.component.html',
   styleUrl: './seller-header.component.scss'
 })
-export class SellerHeaderComponent implements OnInit {
+export class SellerHeaderComponent implements OnInit, OnDestroy {
   currentUser: User | null = null;
   currentShop: Shop | null = null;
   language = 'en';
+
+  private destroy$ = new Subject<void>();
 
   constructor(
     private auth: Auth,
     private router: Router,
     private languageService: LanguageService,
-    private shopService: ShopService
+    private globalStateService: GlobalStateService
   ) {}
 
   ngOnInit() {
+    // Listen to auth state
     this.auth.onAuthStateChanged(user => {
       this.currentUser = user;
     });
 
-    this.shopService.currentShop$.subscribe(shop => {
-      this.currentShop = shop;
-    });
+    // Subscribe to global shop state instead of ShopService
+    this.globalStateService.currentShop$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(shop => {
+        this.currentShop = shop;
+      });
+
+    // Subscribe to language changes
+    this.languageService.language$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(lang => {
+        this.language = lang;
+      });
 
     this.language = this.languageService.getCurrentLanguage();
-    this.languageService.language$.subscribe(lang => {
-      this.language = lang;
-    });
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   async logout() {
@@ -58,9 +75,11 @@ export class SellerHeaderComponent implements OnInit {
       await signOut(this.auth);
       console.log('✅ Logout successful');
       
+      // Clear global state
+      this.globalStateService.clearState();
+      
       // Redirect to login page
-      const shopSlug = this.currentShop?.slug || 'ganesh-bakery';
-      this.router.navigate([shopSlug, 'seller', 'login']);
+      this.router.navigate(['/seller/login']);
     } catch (error) {
       console.error('❌ Logout error:', error);
     }
@@ -68,19 +87,19 @@ export class SellerHeaderComponent implements OnInit {
 
   goToDashboard() {
     if (this.currentShop) {
-      this.router.navigate([this.currentShop.slug, 'seller', 'dashboard']);
+      this.router.navigate(['/seller', this.currentShop.slug, 'dashboard']);
     }
   }
 
   goToProducts() {
     if (this.currentShop) {
-      this.router.navigate([this.currentShop.slug, 'seller', 'products']);
+      this.router.navigate(['/seller', this.currentShop.slug, 'products']);
     }
   }
 
   goToOrders() {
     if (this.currentShop) {
-      this.router.navigate([this.currentShop.slug, 'seller', 'orders']);
+      this.router.navigate(['/seller', this.currentShop.slug, 'orders']);
     }
   }
 
