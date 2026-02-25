@@ -12,5 +12,6 @@ export interface ShopOwnership {
   shopSlug: string;
   userId: string;
   role: 'owner' | 'manager' | 'staff';
+  sellerPhone?: string; // E.164 format: WhatsApp phone number for receiving orders
   createdAt: Date;
 }

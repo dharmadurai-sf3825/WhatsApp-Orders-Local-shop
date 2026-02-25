@@ -44,6 +44,7 @@ export class AdminHeaderComponent {
         console.log('🚪 Admin logging out...');
         await signOut(this.auth);
         console.log('✅ Admin logged out successfully');
+        // Redirect to admin login page (NOT landing page)
         this.router.navigate(['/admin/login']);
       } catch (error) {
         console.error('❌ Logout error:', error);

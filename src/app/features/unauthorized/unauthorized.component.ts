@@ -6,6 +6,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { Auth, signOut } from '@angular/fire/auth';
 import { LanguageService } from '../../core/services/language.service';
+import { AuthService } from '../../core/services/auth.service';
 
 @Component({
   selector: 'app-unauthorized',
@@ -27,7 +28,8 @@ export class UnauthorizedComponent implements OnInit {
     private auth: Auth,
     private router: Router,
     private route: ActivatedRoute,
-    private languageService: LanguageService
+    private languageService: LanguageService,
+    private authService: AuthService
   ) {}
 
   ngOnInit() {
@@ -40,10 +42,26 @@ export class UnauthorizedComponent implements OnInit {
 
   async logout() {
     try {
+      console.log('🔓 Logging out from unauthorized page...');
+      
+      // Check if user is admin
+      const isAdmin = await this.authService.isAdmin();
+      
       await signOut(this.auth);
-      this.router.navigate(['/']);
+      console.log('✅ Logout successful');
+      
+      // Redirect to appropriate login page based on role
+      if (isAdmin) {
+        console.log('👨‍💼 Redirecting to admin login...');
+        this.router.navigate(['/admin/login']);
+      } else {
+        console.log('🏪 Redirecting to seller login...');
+        this.router.navigate(['/seller/login']);
+      }
     } catch (error) {
-      console.error('Logout error:', error);
+      console.error('❌ Logout error:', error);
+      // Fallback: redirect to landing page on error
+      this.router.navigate(['/landing']);
     }
   }
 
@@ -51,3 +69,4 @@ export class UnauthorizedComponent implements OnInit {
     this.router.navigate(['/']);
   }
 }
+

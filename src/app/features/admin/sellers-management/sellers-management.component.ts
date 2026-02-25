@@ -20,6 +20,7 @@ interface SellerAccount {
   email: string;
   shopSlug: string;
   shopName: string;
+  sellerPhone?: string; // WhatsApp phone number in E.164 format
   role: 'owner' | 'manager';
   createdAt: Date;
   status: 'active' | 'inactive';
@@ -57,6 +58,7 @@ export class SellersManagementComponent implements OnInit {
     email: '',
     shopSlug: '',
     shopName: '',
+    sellerPhone: '',
     role: 'owner',
     createdAt: new Date(),
     status: 'active'
@@ -64,7 +66,7 @@ export class SellersManagementComponent implements OnInit {
   
   newPassword = '';
   sellers: SellerAccount[] = [];
-  displayedColumns = ['email', 'shop', 'role', 'status', 'created', 'actions'];
+  displayedColumns = ['email', 'phone', 'shop', 'role', 'status', 'created', 'actions'];
 
   constructor(
     private firestore: Firestore,
@@ -106,8 +108,16 @@ export class SellersManagementComponent implements OnInit {
       this.newPassword.length >= 6 &&
       this.newSeller.shopName &&
       this.newSeller.shopSlug &&
-      this.newSeller.role
+      this.newSeller.role &&
+      this.newSeller.sellerPhone &&
+      this.validatePhoneNumber(this.newSeller.sellerPhone)
     );
+  }
+
+  validatePhoneNumber(phone: string): boolean {
+    // E.164 format: Country code + number (e.g., 918220762702)
+    const e164Regex = /^\d{10,15}$/;
+    return e164Regex.test(phone.replace(/[\s\-\+\(\)]/g, ''));
   }
 
   async createSeller() {
@@ -141,6 +151,7 @@ export class SellersManagementComponent implements OnInit {
         email: this.newSeller.email,
         shopSlug: this.newSeller.shopSlug,
         shopName: this.newSeller.shopName,
+        sellerPhone: this.newSeller.sellerPhone,  // ⭐ WhatsApp phone for receiving orders
         role: this.newSeller.role,
         status: 'active',
         createdAt: new Date()
@@ -235,6 +246,7 @@ export class SellersManagementComponent implements OnInit {
       email: '',
       shopSlug: '',
       shopName: '',
+      sellerPhone: '',
       role: 'owner',
       createdAt: new Date(),
       status: 'active'

@@ -12,20 +12,30 @@ export class WhatsAppService {
   /**
    * Generate WhatsApp Click-to-Chat URL with pre-filled order message
    * Uses wa.me API with E.164 phone format (no +, spaces, or dashes)
-   * @param shop Shop information (contains WhatsApp number)
+   * @param shop Shop information (contains shop phone as fallback)
    * @param cartItems Array of cart items
    * @param customerInfo Customer details
    * @param language 'en' or 'ta'
+   * @param sellerPhone Optional seller WhatsApp phone (E.164 format). Falls back to shop.phoneE164 if not provided
    */
   generateOrderLink(
     shop: Shop,
     cartItems: CartItem[],
     customerInfo: CustomerInfo,
-    language: 'en' | 'ta' = 'ta'
+    language: 'en' | 'ta' = 'ta',
+    sellerPhone?: string
   ): string {
+    // Use seller phone if provided, otherwise fall back to shop phone
+    const phoneNumber = sellerPhone || shop.phoneE164;
+    
+    if (!phoneNumber) {
+      console.error('❌ No phone number available for WhatsApp order');
+      throw new Error('Phone number (seller or shop) is required to generate WhatsApp link');
+    }
+    
     const message = this.buildOrderMessage(shop, cartItems, customerInfo, language);
     const encodedMessage = encodeURIComponent(message);
-    return `https://wa.me/${shop.phoneE164}?text=${encodedMessage}`;
+    return `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
   }
 
   /**

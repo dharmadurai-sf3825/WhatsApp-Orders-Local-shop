@@ -71,14 +71,14 @@ export class SellerHeaderComponent implements OnInit, OnDestroy {
 
   async logout() {
     try {
-      console.log('🔓 Logging out...');
+      console.log('🔓 Seller logging out...');
       await signOut(this.auth);
       console.log('✅ Logout successful');
       
       // Clear global state
       this.globalStateService.clearState();
       
-      // Redirect to login page
+      // Redirect to seller login page (NOT landing page)
       this.router.navigate(['/seller/login']);
     } catch (error) {
       console.error('❌ Logout error:', error);
