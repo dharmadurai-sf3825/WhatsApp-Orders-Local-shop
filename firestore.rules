@@ -1,18 +1,9 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // DEVELOPMENT MODE - Allow all reads and writes
-    // ⚠️ WARNING: Change these rules before going to production!
-    // 
-    // For now, we allow all operations to test the app without authentication
-    // In production, uncomment the authenticated rules below
+    // PRODUCTION RULES - Multi-tenant data isolation enforced per Constitution Principle III
+    // ✅ These rules enforce shop-based access control for all collections
     
-    match /{document=**} {
-      allow read, write: if true;  // 🔓 Open access for development
-    }
-    
-    // PRODUCTION RULES (currently disabled - uncomment when ready)
-    /*
     // Helper functions
     function isAuthenticated() {
       return request.auth != null;
@@ -22,35 +13,142 @@ service cloud.firestore {
       return isAuthenticated() && request.auth.uid == userId;
     }
     
-    // Shops collection
+    function isAdmin() {
+      return isAuthenticated() && request.auth.token.role == 'admin';
+    }
+    
+    function isSeller(shopId) {
+      return isAuthenticated() && 
+             exists(/databases/$(database)/documents/shops/$(shopId)) &&
+             get(/databases/$(database)/documents/shops/$(shopId)).data.sellerId == request.auth.uid;
+    }
+    
+    // ============================================================================
+    // SHOPS Collection - Multi-tenant core data
+    // ============================================================================
     match /shops/{shopId} {
-      allow read: if true; // Public read for customers
-      allow write: if isOwner(resource.data.ownerId);
+      allow read: if isAuthenticated() && (
+        // Customers can read any shop
+        request.auth.token.role == 'customer' ||
+        // Sellers can read only their own shop
+        (request.auth.token.role == 'seller' && resource.data.sellerId == request.auth.uid) ||
+        // Admins can read all shops
+        isAdmin()
+      );
+      
+      allow create: if isAdmin() || (
+        // Sellers can create only if creating for themselves
+        request.auth.token.role == 'seller' &&
+        request.resource.data.sellerId == request.auth.uid
+      );
+      
+      allow update: if isAdmin() || (
+        request.auth.token.role == 'seller' &&
+        resource.data.sellerId == request.auth.uid
+      );
+      
+      allow delete: if isAdmin();
     }
     
-    // Products collection
+    // ============================================================================
+    // PRODUCTS Collection - Shop-scoped
+    // ============================================================================
     match /products/{productId} {
-      allow read: if true; // Public read for customers
-      allow write: if isAuthenticated() && 
-                     exists(/databases/$(database)/documents/shops/$(resource.data.shopId)) &&
-                     get(/databases/$(database)/documents/shops/$(resource.data.shopId)).data.ownerId == request.auth.uid;
+      allow read: if isAuthenticated() && (
+        // Customers can read products from any shop
+        request.auth.token.role == 'customer' ||
+        // Sellers can read only their shop's products
+        (request.auth.token.role == 'seller' && 
+         resource.data.shopId != null &&
+         isSeller(resource.data.shopId)) ||
+        // Admins can read all products
+        isAdmin()
+      );
+      
+      allow write: if (
+        request.auth.token.role == 'seller' &&
+        request.resource.data.shopId != null &&
+        isSeller(request.resource.data.shopId)
+      ) || isAdmin();
+      
+      allow delete: if (
+        request.auth.token.role == 'seller' &&
+        resource.data.shopId != null &&
+        isSeller(resource.data.shopId)
+      ) || isAdmin();
     }
     
-    // Orders collection
+    // ============================================================================
+    // ORDERS Collection - Buyer/Seller access only
+    // ============================================================================
     match /orders/{orderId} {
-      allow read: if isOwner(resource.data.customerId) || 
-                     isOwner(resource.data.sellerId);
-      allow create: if isAuthenticated();
-      allow update: if isOwner(resource.data.sellerId); // Only seller can update order status
-      allow delete: if false; // No deletion allowed
+      allow read: if isAuthenticated() && (
+        // Customer can read own orders
+        resource.data.customerId == request.auth.uid ||
+        // Seller can read orders for their shop
+        (request.auth.token.role == 'seller' && 
+         resource.data.shopId != null &&
+         isSeller(resource.data.shopId)) ||
+        // Admin can read all orders
+        isAdmin()
+      );
+      
+      allow create: if isAuthenticated() && (
+        // Only customers can create orders
+        request.auth.token.role == 'customer' &&
+        request.resource.data.customerId == request.auth.uid &&
+        request.resource.data.shopId != null
+      );
+      
+      allow update: if (
+        // Only seller of that shop can update order status
+        request.auth.token.role == 'seller' &&
+        resource.data.shopId != null &&
+        isSeller(resource.data.shopId)
+      ) || isAdmin();
+      
+      allow delete: if false; // Orders are immutable - no deletion
     }
     
-    // Payments collection
+    // ============================================================================
+    // PAYMENTS Collection - User/Admin access only, immutable
+    // ============================================================================
     match /payments/{paymentId} {
-      allow read: if isOwner(resource.data.userId);
-      allow create: if isAuthenticated();
-      allow update, delete: if false; // Payments are immutable
+      allow read: if isAuthenticated() && (
+        // User can read own payment records
+        resource.data.userId == request.auth.uid ||
+        // Sellers can read payments for their shop's orders
+        (request.auth.token.role == 'seller' &&
+         resource.data.shopId != null &&
+         isSeller(resource.data.shopId)) ||
+        // Admin can read all payments
+        isAdmin()
+      );
+      
+      allow create: if isAuthenticated() &&
+        request.resource.data.userId == request.auth.uid;
+      
+      allow update: if false; // Payments are immutable
+      allow delete: if false; // Payments are immutable
     }
-    */
+    
+    // ============================================================================
+    // USERS Collection - Self + Admin read only
+    // ============================================================================
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow create: if isOwner(userId);
+      allow update: if isOwner(userId) || isAdmin();
+      allow delete: if isAdmin();
+    }
+    
+    // ============================================================================
+    // DEFAULT DENY - Catch-all security rule
+    // ============================================================================
+    match /{document=**} {
+      allow read, write: if false; // Explicit deny for unlisted collections
+    }
   }
 }
+
+
