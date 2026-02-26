@@ -19,44 +19,22 @@ export const routes: Routes = [
     loadComponent: () => import('./features/unauthorized/unauthorized.component').then(m => m.UnauthorizedComponent)
   },
   
-  // Admin routes
+  // Admin module routes
   {
     path: 'admin',
-    loadChildren: () => import('./features/admin/admin.routes').then(m => m.ADMIN_ROUTES)
+    loadChildren: () => import('./modules/admin/admin.routes').then(m => m.ADMIN_ROUTES)
   },
   
-  // Seller routes (independent, not under shop slug)
+  // Seller module routes (independent, not under shop slug)
   {
     path: 'seller',
-    loadChildren: () => import('./features/seller/seller.routes').then(m => m.SELLER_ROUTES)
+    loadChildren: () => import('./modules/seller/seller.routes').then(m => m.SELLER_ROUTES)
   },
   
-  // Shop-based routes with slug parameter (customer-facing only)
+  // Customer module routes with shop slug parameter
   {
     path: ':shopSlug',
-    children: [
-      {
-        path: '',
-        redirectTo: 'home',
-        pathMatch: 'full'
-      },
-      {
-        path: 'home',
-        loadComponent: () => import('./features/customer/home/home.component').then(m => m.HomeComponent)
-      },
-      {
-        path: 'products',
-        loadComponent: () => import('./features/customer/products/products.component').then(m => m.ProductsComponent)
-      },
-      {
-        path: 'product/:id',
-        loadComponent: () => import('./features/customer/product-details/product-details.component').then(m => m.ProductDetailsComponent)
-      },
-      {
-        path: 'cart',
-        loadComponent: () => import('./features/customer/cart/cart.component').then(m => m.CartComponent)
-      }
-    ]
+    loadChildren: () => import('./modules/customer/customer.routes').then(m => m.CUSTOMER_ROUTES)
   },
   
   // Smart root: redirects based on user status
