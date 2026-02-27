@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { RouterModule, ActivatedRoute } from '@angular/router';
+import { ShopService } from '../../../../core/services/shop.service';
 
 @Component({
   selector: 'app-customer-layout',
@@ -44,4 +45,20 @@ import { RouterModule } from '@angular/router';
     }
   `]
 })
-export class CustomerLayoutComponent {}
+export class CustomerLayoutComponent implements OnInit {
+  constructor(
+    private route: ActivatedRoute,
+    private shopService: ShopService
+  ) {}
+
+  ngOnInit() {
+    // Get shop slug from route parameter and initialize shop
+    this.route.paramMap.subscribe(params => {
+      const shopSlug = params.get('shopSlug');
+      if (shopSlug) {
+        console.log('🏪 Customer Layout: Initializing shop:', shopSlug);
+        this.shopService.initializeShop(shopSlug);
+      }
+    });
+  }
+}

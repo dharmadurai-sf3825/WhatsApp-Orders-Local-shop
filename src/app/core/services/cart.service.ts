@@ -57,6 +57,16 @@ export class CartService {
 
   updateQuantity(itemIndex: number, quantity: number): void {
     const cart = this.cartSubject.value;
+    const item = cart[itemIndex];
+
+    // Validate quantity against maxQuantity (if specified)
+    if (item.maxQuantity && quantity > item.maxQuantity) {
+      console.warn(
+        `Quantity ${quantity} exceeds max available ${item.maxQuantity} for ${item.name}. Capping at max.`
+      );
+      quantity = item.maxQuantity;
+    }
+
     if (quantity <= 0) {
       cart.splice(itemIndex, 1);
     } else {

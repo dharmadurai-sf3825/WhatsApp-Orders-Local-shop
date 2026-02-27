@@ -2,7 +2,7 @@ import { Routes } from '@angular/router';
 
 export const CUSTOMER_ROUTES: Routes = [
   {
-    path: ':shopSlug',
+    path: '',
     loadComponent: () => import('./components/customer-layout/customer-layout.component')
       .then(m => m.CustomerLayoutComponent),
     children: [

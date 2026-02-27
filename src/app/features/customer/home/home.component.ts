@@ -29,8 +29,10 @@ export class HomeComponent implements OnInit {
   shop: Shop | null = null;
   categories: { name: string; nameTA?: string }[] = [];
   featuredProducts: Product[] = [];
+  filteredProducts: Product[] = [];
   cartCount = 0;
   language = 'ta';
+  selectedCategory: string | null = null;
 
   constructor(
     private firebaseService: FirebaseService,
@@ -64,6 +66,7 @@ export class HomeComponent implements OnInit {
 
     this.firebaseService.getProductsByShopId(this.shop.id).subscribe(products => {
       this.featuredProducts = products;
+      this.filteredProducts = products;
       
       // Extract unique categories
       const categorySet = new Set<string>();
@@ -81,6 +84,15 @@ export class HomeComponent implements OnInit {
         };
       });
     });
+  }
+
+  selectCategory(category: string | null) {
+    this.selectedCategory = category;
+    if (category) {
+      this.filteredProducts = this.featuredProducts.filter(p => p.category === category);
+    } else {
+      this.filteredProducts = this.featuredProducts;
+    }
   }
 
   addToCart(product: Product) {
@@ -105,6 +117,10 @@ export class HomeComponent implements OnInit {
     if (this.shop) {
       this.router.navigate([this.shop.slug, 'cart']);
     }
+  }
+
+  isMobile(): boolean {
+    return window.innerWidth < 768;
   }
 
   getCategoryIcon(category: { name: string }): string {

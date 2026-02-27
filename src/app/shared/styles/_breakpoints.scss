@@ -1,0 +1,73 @@
+// Responsive Design Breakpoints for Cart Component Redesign
+// Mobile-first approach: design for smallest screen first, then enhance for larger screens
+
+// Breakpoint Variables (matching spec.md SC-007)
+$breakpoint-mobile-xs: 320px;    // Extra small phones
+$breakpoint-mobile-sm: 375px;    // Standard phone (iPhone)
+$breakpoint-mobile: 480px;       // Small mobile devices
+$breakpoint-tablet: 768px;       // Tablet portrait
+$breakpoint-desktop: 1024px;     // Desktop / Tablet landscape
+$breakpoint-desktop-lg: 1440px;  // Large desktop
+$breakpoint-desktop-xl: 1920px;  // Extra large desktop
+
+// Responsive Mixins
+@mixin mobile-xs {
+  @media (max-width: $breakpoint-mobile-sm) {
+    @content;
+  }
+}
+
+@mixin mobile {
+  @media (max-width: $breakpoint-mobile) {
+    @content;
+  }
+}
+
+@mixin mobile-to-tablet {
+  @media (min-width: calc($breakpoint-mobile + 1px)) and (max-width: calc($breakpoint-tablet - 1px)) {
+    @content;
+  }
+}
+
+@mixin tablet {
+  @media (min-width: $breakpoint-tablet) and (max-width: calc($breakpoint-desktop - 1px)) {
+    @content;
+  }
+}
+
+@mixin desktop {
+  @media (min-width: $breakpoint-desktop) {
+    @content;
+  }
+}
+
+@mixin desktop-lg {
+  @media (min-width: $breakpoint-desktop-lg) {
+    @content;
+  }
+}
+
+@mixin desktop-xl {
+  @media (min-width: $breakpoint-desktop-xl) {
+    @content;
+  }
+}
+
+// Up to specific breakpoint
+@mixin up-to-mobile {
+  @media (max-width: calc($breakpoint-mobile - 1px)) {
+    @content;
+  }
+}
+
+@mixin up-to-tablet {
+  @media (max-width: calc($breakpoint-tablet - 1px)) {
+    @content;
+  }
+}
+
+@mixin up-to-desktop {
+  @media (max-width: calc($breakpoint-desktop - 1px)) {
+    @content;
+  }
+}

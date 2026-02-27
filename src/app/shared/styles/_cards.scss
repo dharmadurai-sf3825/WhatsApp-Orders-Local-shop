@@ -1,0 +1,245 @@
+// Card Layout & Spacing Utilities for Cart Component Redesign
+// Mobile-first responsive card layout system
+
+// Card Component Base Styles
+.card-base {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: box-shadow 0.2s ease;
+
+  &:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  }
+}
+
+// Card Container (for cart items list)
+.card-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+// Individual Card Item (responsive)
+.card-item {
+  @extend .card-base;
+  display: flex;
+  gap: 16px;
+  padding: 16px;
+  align-items: flex-start;
+  background: #fafafa;
+  border: 1px solid #e0e0e0;
+
+  // Mobile: reduce spacing
+  @media (max-width: 480px) {
+    gap: 12px;
+    padding: 12px;
+  }
+
+  // Mobile: wrap on very small screens
+  @media (max-width: 320px) {
+    gap: 8px;
+    padding: 8px;
+  }
+}
+
+// Card Image Section
+.card-image {
+  flex-shrink: 0;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+  overflow: hidden;
+  background-size: cover;
+  background-position: center;
+
+  // Breakpoint-specific sizing
+  // Desktop (1024px+): 100x100px
+  width: 100px;
+  height: 100px;
+
+  // Tablet (768px - 1023px): 85x85px
+  @media (max-width: 1023px) {
+    width: 85px;
+    height: 85px;
+  }
+
+  // Tablet to Mobile (480px - 767px): 80x80px
+  @media (max-width: 767px) {
+    width: 80px;
+    height: 80px;
+  }
+
+  // Small Mobile (320px - 479px): 70x70px
+  @media (max-width: 479px) {
+    width: 70px;
+    height: 70px;
+  }
+
+  // Extra small mobile (< 320px): 60x60px
+  @media (max-width: 319px) {
+    width: 60px;
+    height: 60px;
+  }
+}
+
+// Card Content Section (product name, unit, price)
+.card-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0; // Allow text truncation handling
+
+  h3, h4, h5, h6 {
+    margin: 0 0 4px 0;
+    line-height: 1.4;
+  }
+
+  p {
+    margin: 0 0 4px 0;
+    line-height: 1.4;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+}
+
+// Card Info Elements (product name, unit, price)
+.card-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #222;
+  word-break: break-word;
+  overflow-wrap: break-word;
+
+  @media (max-width: 480px) {
+    font-size: 14px;
+  }
+
+  @media (max-width: 320px) {
+    font-size: 13px;
+  }
+}
+
+.card-subtitle {
+  font-size: 12px;
+  color: #999;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.card-price {
+  font-size: 14px;
+  color: #666;
+
+  @media (max-width: 480px) {
+    font-size: 12px;
+  }
+}
+
+.card-price-total {
+  font-size: 18px;
+  font-weight: 700;
+  color: #2e7d32; // Green for emphasis
+
+  @media (max-width: 480px) {
+    font-size: 16px;
+  }
+
+  @media (max-width: 320px) {
+    font-size: 14px;
+  }
+}
+
+// Card Controls Section (quantity, delete, etc.)
+.card-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-end;
+  justify-content: center;
+  flex-shrink: 0;
+
+  // Mobile: stack horizontally
+  @media (max-width: 480px) {
+    flex-direction: row;
+    justify-content: space-between;
+    width: 100%;
+    gap: 6px;
+  }
+}
+
+// Button Reset (for custom buttons in cards)
+.card-button {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+  min-width: 44px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+
+  &:hover:not(:disabled) {
+    background-color: rgba(0, 0, 0, 0.05);
+  }
+
+  &:focus {
+    outline: 2px solid #1976d2;
+    outline-offset: 2px;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+// Spacing Utilities
+.gap-xs { gap: 4px; }
+.gap-sm { gap: 8px; }
+.gap-md { gap: 12px; }
+.gap-lg { gap: 16px; }
+.gap-xl { gap: 20px; }
+
+.padding-xs { padding: 4px; }
+.padding-sm { padding: 8px; }
+.padding-md { padding: 12px; }
+.padding-lg { padding: 16px; }
+.padding-xl { padding: 20px; }
+
+// Margin Utilities
+.margin-xs { margin: 4px; }
+.margin-sm { margin: 8px; }
+.margin-md { margin: 12px; }
+.margin-lg { margin: 16px; }
+.margin-xl { margin: 20px; }
+
+// Responsive Display Utilities
+.show-mobile {
+  @media (min-width: 481px) {
+    display: none;
+  }
+}
+
+.hide-mobile {
+  @media (max-width: 480px) {
+    display: none;
+  }
+}
+
+.show-tablet {
+  @media (max-width: 767px) or (min-width: 1024px) {
+    display: none;
+  }
+}
+
+.show-desktop {
+  @media (max-width: 1023px) {
+    display: none;
+  }
+}

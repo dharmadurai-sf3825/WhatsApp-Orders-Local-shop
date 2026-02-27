@@ -29,4 +29,8 @@ export interface CartItem extends Product {
   quantity: number;
   selectedOptions?: { [key: string]: string };
   totalPrice: number;
+  // Redesign enhancements (optional, backwards-compatible)
+  maxQuantity?: number;           // Stock inventory limit
+  originalPrice?: number;         // Price before discount
+  discountPercentage?: number;    // Discount percentage for display
 }

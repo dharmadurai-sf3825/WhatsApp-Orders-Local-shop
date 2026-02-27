@@ -1,4 +1,3 @@
-
 :host {
   --whatsapp-teal: #0f766e;
   --whatsapp-green: #25d366;
@@ -73,6 +72,24 @@
   margin: 20px 0;
 }
 
+.loading-container .spinner {
+  font-size: 48px;
+  width: 48px;
+  height: 48px;
+  margin-bottom: 16px;
+  opacity: 0.5;
+  animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .no-products mat-icon {
   font-size: 64px;
   width: 64px;
@@ -127,7 +144,7 @@
 .category-filter-btn:hover {
   border-color: var(--whatsapp-green);
   background: rgba(37, 211, 102, 0.05);
-  color: var(--whatsApp-green);
+  color: var(--whatsapp-green);
 }
 
 .category-filter-btn.active {
@@ -495,4 +512,3 @@ mat-card-actions {
     padding: 10px;
   }
 }
-  

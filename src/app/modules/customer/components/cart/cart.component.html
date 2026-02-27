@@ -1,0 +1,215 @@
+<div class="cart-container">
+  <!-- Cart Header -->
+  <div class="cart-header">
+    <button mat-icon-button (click)="goBack()" [attr.aria-label]="language === 'ta' ? 'பின்னுக்குச் செல்' : 'Go back'">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <h1>{{ language === 'ta' ? 'கூடை' : 'Shopping Cart' }}</h1>
+    <span class="item-count" *ngIf="cartItems.length > 0">({{ getTotalItems() }} {{ language === 'ta' ? 'பொருட்கள்' : 'items' }})</span>
+  </div>
+
+  <!-- Empty Cart State -->
+  <div *ngIf="cartItems.length === 0" class="empty-cart" role="status">
+    <mat-icon class="empty-icon">shopping_cart</mat-icon>
+    <h2>{{ language === 'ta' ? 'கூடை காலியாக உள்ளது' : 'Your cart is empty' }}</h2>
+    <button mat-raised-button color="primary" (click)="continueShopping()">
+      {{ language === 'ta' ? 'ஷாப்பிங் தொடரவும்' : 'Continue Shopping' }}
+    </button>
+  </div>
+
+  <!-- Cart Content (when items present) -->
+  <div *ngIf="cartItems.length > 0" class="cart-content">
+
+    <!-- Cart Items Section (Card-based Layout) -->
+    <mat-card class="items-section">
+      <h2>{{ language === 'ta' ? 'பொருட்கள்' : 'Items' }}</h2>
+
+      <!-- Cart Items List -->
+      <div class="cart-items-list">
+        <!-- Individual Item Card -->
+        <article class="cart-item-card" 
+                  *ngFor="let item of cartItems; let i = index"
+                  [attr.aria-label]="'Product: ' + (language === 'ta' && item.nameTA ? item.nameTA : item.name)">
+
+          <!-- Product Image -->
+          <div class="item-image-container">
+            <img [src]="getImageUrl(item)" 
+                 [alt]="'Product: ' + (language === 'ta' && item.nameTA ? item.nameTA : item.name)"
+                 class="item-image"
+                 loading="lazy"
+                 [appLazyLoad]="item.imageUrl || ''"
+                 lazyLoadFallback="/assets/placeholder-product.svg"
+                 [lazyLoadEager]="i < 3"
+                 onerror="this.src='/assets/placeholder-product.svg'">
+          </div>
+
+          <!-- Product Details (Name, Unit, Price) -->
+          <div class="item-details">
+            <h3 class="item-name">
+              {{ language === 'ta' && item.nameTA ? item.nameTA : item.name }}
+            </h3>
+            <p class="item-unit">
+              {{ language === 'ta' && item.unitTA ? item.unitTA : item.unit }}
+            </p>
+
+            <!-- Price Information -->
+            <div class="price-info">
+              <span class="unit-price">
+                ₹{{ item.price }} / {{ language === 'ta' && item.unitTA ? item.unitTA : item.unit }}
+              </span>
+              
+              <!-- Discount Badge (if applicable) -->
+              <span *ngIf="item.discountPercentage" class="discount-badge">
+                -{{ item.discountPercentage }}%
+              </span>
+            </div>
+
+            <!-- Original Price (if discounted) -->
+            <p *ngIf="item.originalPrice" class="original-price">
+              ₹{{ item.originalPrice }}
+            </p>
+          </div>
+
+          <!-- Quantity & Price Controls (Right Side) -->
+          <div class="item-controls">
+            <!-- Quantity Section -->
+            <div class="quantity-section" role="group" [attr.aria-label]="'Quantity for ' + item.name">
+              <label class="quantity-label">{{ language === 'ta' ? 'அ.' : 'Qty' }}</label>
+              <div class="quantity-controls">
+                <button mat-icon-button 
+                        class="qty-btn"
+                        (click)="decrementQuantity(i)"
+                        [disabled]="item.quantity <= 1"
+                        [attr.aria-label]="'Decrease quantity for ' + item.name">
+                  <mat-icon>remove</mat-icon>
+                </button>
+                <span class="quantity-display" aria-live="polite">{{ item.quantity }}</span>
+                <button mat-icon-button 
+                        class="qty-btn"
+                        (click)="incrementQuantity(i)"
+                        [disabled]="!canIncrementQuantity(item)"
+                        [attr.aria-label]="'Increase quantity for ' + item.name">
+                  <mat-icon>add</mat-icon>
+                </button>
+              </div>
+            </div>
+
+            <!-- Price Section -->
+            <div class="price-section">
+              <p class="price-label">{{ language === 'ta' ? 'மொத்தம்' : 'Total' }}</p>
+              <p class="item-total-price">₹{{ item.totalPrice }}</p>
+            </div>
+
+            <!-- Delete Button -->
+            <button mat-icon-button 
+                    class="delete-btn"
+                    color="warn"
+                    (click)="removeItem(i)"
+                    [attr.aria-label]="'Remove ' + item.name + ' from cart'">
+              <mat-icon>delete_outline</mat-icon>
+            </button>
+          </div>
+        </article>
+      </div>
+    </mat-card>
+
+    <!-- Customer Details Section -->
+    <mat-card class="details-section">
+      <h2>{{ language === 'ta' ? 'உங்கள் விவரங்கள்' : 'Your Details' }}</h2>
+
+      <div class="form-group">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>{{ language === 'ta' ? 'பெயர்' : 'Name' }}</mat-label>
+          <input matInput [(ngModel)]="customerInfo.name" 
+                 [attr.aria-label]="language === 'ta' ? 'பெயர்' : 'Customer name'"
+                 required>
+          <mat-icon matPrefix>person</mat-icon>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>{{ language === 'ta' ? 'தொலைபேசி எண்' : 'Phone Number' }}</mat-label>
+          <input matInput [(ngModel)]="customerInfo.phone" 
+                 type="tel"
+                 [attr.aria-label]="language === 'ta' ? 'தொலைபேசி எண்' : 'Phone number'"
+                 required>
+          <mat-icon matPrefix>phone</mat-icon>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>{{ language === 'ta' ? 'முகவரி' : 'Address' }}</mat-label>
+          <textarea matInput [(ngModel)]="customerInfo.address" 
+                    rows="3"
+                    [attr.aria-label]="language === 'ta' ? 'முகவரி' : 'Delivery address'"
+                    required></textarea>
+          <mat-icon matPrefix>location_on</mat-icon>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>{{ language === 'ta' ? 'அடையாளம் (விருப்பமானது)' : 'Landmark (Optional)' }}</mat-label>
+          <input matInput [(ngModel)]="customerInfo.landmark">
+          <mat-icon matPrefix>place</mat-icon>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>{{ language === 'ta' ? 'விருப்ப நேரம் (விருப்பமானது)' : 'Preferred Time (Optional)' }}</mat-label>
+          <input matInput [(ngModel)]="customerInfo.preferredTime" placeholder="e.g., 5:00 PM">
+          <mat-icon matPrefix>schedule</mat-icon>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>{{ language === 'ta' ? 'குறிப்புகள் (விருப்பமானது)' : 'Notes (Optional)' }}</mat-label>
+          <textarea matInput [(ngModel)]="customerInfo.notes" rows="2"></textarea>
+          <mat-icon matPrefix>note</mat-icon>
+        </mat-form-field>
+      </div>
+    </mat-card>
+
+    <!-- Order Summary Section -->
+    <mat-card class="summary-section">
+      <h2>{{ language === 'ta' ? 'ஆர்டர் சுருக்கம்' : 'Order Summary' }}</h2>
+
+      <div class="summary-row">
+        <span>{{ language === 'ta' ? 'பொருட்கள்' : 'Items' }}:</span>
+        <span>{{ getTotalItems() }}</span>
+      </div>
+      <div class="summary-row">
+        <span>{{ language === 'ta' ? 'கூட' : 'Subtotal' }}:</span>
+        <span>₹{{ getSubtotal() }}</span>
+      </div>
+
+      <div class="summary-row total">
+        <span>{{ language === 'ta' ? 'மொத்தம்' : 'Total' }}:</span>
+        <span>₹{{ getSubtotal() }}</span>
+      </div>
+
+      <!-- WhatsApp Order Button -->
+      <button mat-raised-button 
+              class="whatsapp-order-btn"
+              [disabled]="!isFormValid()"
+              (click)="orderOnWhatsApp()"
+              [attr.aria-label]="language === 'ta' ? 'வாட்ஸ்அப்பில் ஆர்டர் செய்யவும்' : 'Order on WhatsApp'">
+        <mat-icon>
+          <svg viewBox="0 0 24 24" width="24" height="24">
+            <path fill="currentColor" d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+          </svg>
+        </mat-icon>
+        {{ language === 'ta' ? 'வாட்ஸ்அப்பில் ஆர்டர் செய்யவும்' : 'Order on WhatsApp' }}
+      </button>
+
+      <p class="info-text">
+        {{ language === 'ta' 
+          ? 'உங்கள் ஆர்டரை உறுதிப்படுத்த வாட்ஸ்அப் சாட் திறக்கும்' 
+          : 'WhatsApp chat will open to confirm your order' 
+        }}
+      </p>
+    </mat-card>
+
+    <!-- Continue Shopping Button -->
+    <button mat-raised-button 
+            class="continue-shopping-btn"
+            (click)="continueShopping()"
+            [attr.aria-label]="language === 'ta' ? 'ஷாப்பிங் தொடரவும்' : 'Continue shopping'">
+      {{ language === 'ta' ? 'ஷாப்பிங் தொடரவும்' : 'Continue Shopping' }}
+    </button>
+  </div>
+</div>
